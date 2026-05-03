@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="id" oncontextmenu="return false" onselectstart="return false" onkeydown="if(event.ctrlKey && (event.key==='c' || event.key==='u')) return false">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>CAT PRESTASI — Persona Research & Consulting</title>
+    
+    <style>
+        :root { --primary: #1a1a2e; --accent: #c5a059; --bg: #f8f7f2; --text: #1a1a2e; --success: #27ae60; --danger: #e74c3c; --gold: #d4af37; }
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; margin: 0; padding: 0; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; color: var(--text); padding: 10px; line-height: 1.5; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-top: 8px solid var(--accent); }
+        .brand { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .brand h1 { font-size: 24px; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; }
+        .brand p { font-size: 14px; color: var(--gold); font-weight: bold; }
+        .timer { font-size: 28px; font-weight: 800; color: var(--danger); text-align: center; margin-bottom: 20px; background: #fff5f5; padding: 10px; border-radius: 8px; border: 1px solid #ffebeb; }
+        .q-text { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 20px; }
+        .opt { display: flex; align-items: center; padding: 12px; margin: 8px 0; border: 2px solid #f0f0f0; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .opt:hover { background: #fdfaf0; border-color: var(--accent); }
+        .opt.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 5px; margin: 20px 0; padding: 10px; background: #fafafa; border-radius: 8px; max-height: 150px; overflow-y: auto; }
+        .nav-item { height: 35px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .nav-item.filled { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .nav-item.active { border: 2px solid var(--primary); font-weight: bold; }
+        .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-navy { background: var(--primary); color: #fff; }
+        .recap-container { margin-top: 30px; text-align: left; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: var(--primary); color: white; }
+        .correct { color: var(--success); font-weight: bold; }
+        .wrong { color: var(--danger); font-weight: bold; }
+        footer { text-align: center; margin-top: 20px; font-size: 12px; color: #777; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-screen">
+        <div class="brand">
+            <h1>SIMULASI CAT PRESTASI</h1>
+            <p>Persona Research & Consulting</p>
+        </div>
+        <input type="text" id="username" style="width:100%; padding:15px; margin-bottom:20px; border:2px solid #ddd; border-radius:8px; text-align:center;" placeholder="Nama Lengkap Calon Siswa">
+        <button class="btn btn-navy" onclick="startTest()">MULAI UJIAN SEKARANG</button>
+    </div>
+
+    <div id="test-screen" style="display:none;">
+        <div class="timer" id="timer">90:00</div>
+        <div id="q-area">
+            <div id="q-num" style="color:var(--accent); font-weight:bold; margin-bottom:10px;"></div>
+            <div id="q-text" class="q-text"></div>
+            <div id="options-container"></div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn" style="background:#888; color:white;" onclick="changeQ(-1)">KEMBALI</button>
+            <button class="btn btn-navy" onclick="changeQ(1)">LEWATI</button>
+        </div>
+        <div class="nav-grid" id="nav-grid"></div>
+        <button class="btn" style="background:var(--danger); color:white;" onclick="confirmFinish()">SELESAI & SIMPAN NILAI</button>
+    </div>
+
+    <div id="result-screen" style="display:none; text-align:center;">
+        <div class="brand"><h1>HASIL EVALUASI</h1></div>
+        <p id="res-name" style="font-weight:bold; font-size: 1.2em;"></p>
+        <div style="font-size:60px; font-weight:900; color:var(--primary); margin: 10px 0;" id="score-val">0</div>
+        <div class="recap-container">
+            <h3>Rekapitulasi Jawaban:</h3>
+            <table id="recap-table">
+                <thead><tr><th>No</th><th>Jawaban Anda</th><th>Kunci</th><th>Status</th></tr></thead>
+                <tbody id="recap-body"></tbody>
+            </table>
+        </div>
+        <button class="btn btn-navy" style="margin-top:20px;" onclick="location.reload()">KEMBALI KE MENU</button>
+    </div>
+</div>
+
+<footer>
+    &copy; 2026 Persona Research & Consulting | WA: 0877-4251-5786[cite: 2]
+</footer>
+
+<script>
+    const rawData = [
+        {"q": "Rabun >< ...", "o": ["Tajam", "Terang", "Tepat", "Jelas", "Samar"], "a": 3},
+        {"q": "Kisi-kisi = ...", "o": ["Alat menangkap ikan", "Alat hitung", "Tabel", "Terali", "Pola kerja"], "a": 3},
+        {"q": "Boga = ...", "o": ["Pakaian bersama", "Makanan kenikmatan", "Dekorasi tataruang", "Pakaian pengantin", "Tata rias"], "a": 1},
+        {"q": "Anjung = ...", "o": ["Dayung", "Panggung", "Buyung", "Puji", "Angkat"], "a": 1},
+        {"q": "Surai >< ...", "o": ["Bubar", "Usai", "Purna", "Berhimpun", "Akhir"], "a": 3},
+        {"q": "Kisi-kisi = ...", "o": ["Pancingan", "Kalkulator", "Teralis", "Tabel", "Kinerja"], "a": 2},
+        {"q": "Mudun = ...", "o": ["Masalah", "Beradab", "Sumber", "Paham", "Musyawarah"], "a": 1},
+        {"q": "Boga = ...", "o": ["Baju besar", "Makanan kenikmatan", "Dekor rumah", "Seragam pengantin", "Rias wajah"], "a": 1},
+        {"q": "Friksi = ...", "o": ["Perpecahan", "Tak mampu", "Stres", "Depresi", "Putus asa"], "a": 0},
+        {"q": "Hipokrit >< ...", "o": ["Jujur", "Berkata bohong", "Marah", "Berkamuflase", "Tertutup"], "a": 0},
+        {"q": "Morfem >< ...", "o": ["Komunitas", "Logo", "Morse", "Hati", "Fonem"], "a": 4},
+        {"q": "Pemerintah : Perpu = ....", "o": ["Buruh : Demo", "Makan : Penuh", "MPR : UU", "Menteri : Peraturan", "Hakim : Terpidana"], "a": 2},
+        {"q": "Otonomi : Mandiri = ....", "o": ["Kartu VGA : Perangkat keras", "Shampo : Mandi", "Cerdas : Banyak akal", "BBM : Mesin bermotor", "Warga : Komunitas"], "a": 2},
+        {"q": "Rokok : Asbak = Air : ....", "o": ["Selang panjang", "Pembuangan", "Ember", "Shower", "Saluran"], "a": 2},
+        {"q": "Luas jalan kebun (16x12, lebar jalan 3m)?", "o": ["134", "234", "204", "345", "654"], "a": 2},
+        {"q": "Rina 2/5 km dalam 5 menit, jarak 1 jam?", "o": ["8,5 km", "2,3 km", "11 km", "4,8 km", "9,3 km"], "a": 3},
+        {"q": "BBM 4L untuk 32km. 56km butuh berapa L?", "o": ["15 liter", "16 liter", "7 liter", "28 liter", "19 liter"], "a": 2},
+        {"q": "9 x 2 x 7 - 65 - 40 = ....", "o": ["133", "-133", "21"], "a": 2},
+        {"q": "455 x 45 : 455 - 3 = ....", "o": ["-11", "42", "24", "43", "45"], "a": 1},
+        {"q": "X rupiah dibagi n orang (180rb), tambah 2 orang (150rb)?", "o": ["1.340.000", "1.370.000", "1.800.000", "1.890.000", "1.980.400"], "a": 2},
+        {"q": "11 x 9 : 99 - 0 = ....", "o": ["4", "1", "6", "8", "9"], "a": 1},
+        {"q": "Deret: 52, 53, 56, 61, 60, 77, ....", "o": ["78", "64", "45", "99", "45"], "a": 1},
+        {"q": "Deret: 1, 4, 9, 16, 25, ...., 49", "o": ["56", "34", "34", "36", "78"], "a": 3},
+        {"q": "Bukan kesamaan: Mengecat, Mengucap, Menyanyi, Meniup, Mengecup", "o": ["Mengecat", "Mengucap", "Menyanyi", "Meniup", "Mengecup"], "a": 0},
+        {"q": "Bukan kesamaan: Lumpur, Bedak, Abu, Debu, Pasir", "o": ["Lumpur", "Bedak", "Abu", "Debu", "Pasir"], "a": 0},
+        {"q": "Bukan kesamaan: Mengukus, Menempa, Mengelas, Melelehkan, Membubut", "o": ["Mengukus", "Menempa", "Mengelas", "Melelehkan", "Membubut"], "a": 0},
+        {"q": "Bukan kesamaan: Darah, Gel, Magma, Bensin, Cuka", "o": ["Darah", "Gel", "Magma", "Bensin", "Cuka"], "a": 0},
+        {"q": "Bukan kesamaan: Menguliti, Menciduk, Mengupas, Memotong, Menikam", "o": ["Menguliti", "Menciduk", "Mengupas", "Memotong", "Menikam"], "a": 4},
+        {"q": "Bukan kesamaan: Kudeta, Khianat, Ingkar, Desersi, Belot", "o": ["Kudeta", "Khianat", "Ingkar", "Desersi", "Belot"], "a": 0},
+        {"q": "Bukan kesamaan: Perombakan, Pembongkaran, Pengabaian, Pembasmian, Pemusnahan", "o": ["Perombakan", "Pembongkaran", "Pengabaian", "Pembasmian", "Pemusnahan"], "a": 2},
+        {"q": "Tokoh pemberi konsep dasar negara (D)?", "o": ["Soekarno", "M. Yamin", "M. Hatta", "Soepomo", "A. Subarjo"], "a": 3},
+        {"q": "Tanam paksa (cultuurstelsel) berlangsung tahun?", "o": ["1830–1870", "1865–1867", "1848–1857", "1867–1875", "1888–1892"], "a": 0},
+        {"q": "MPR tidak lagi kedaulatan penuh rakyat karena...", "o": ["Kedaulatan di tangan rakyat", "Mekanisme langsung", "Pilihan Presiden", "Tangan MK", "Bagian DPD"], "a": 0},
+        {"q": "Strategi politik nasional Indonesia berdasar?", "o": ["UUD 1945", "Keppres", "Pancasila", "GBHN", "Pancasila & UUD 1945"], "a": 4},
+        {"q": "Tugas utama PPKI (7 Agt 1945)?", "o": ["Caklok perusahaan", "Menang Perang", "Laskar rakyat", "Persiapkan pemerintahan", "Perang Asia Timur"], "a": 3},
+        {"q": "Hapus kemiskinan & pemerataan sosial adalah ciri?", "o": ["Nasionalisme", "Sosialisme", "Demokrasi", "Kapitalisme", "Liberalisme"], "a": 1},
+        {"q": "Pilihan tindakan pemerintah disebut?", "o": ["Keadilan", "Kebijakan", "Peraturan", "Strategi", "Keputusan"], "a": 1},
+        {"q": "Tujuan utama privatisasi BUMN?", "o": ["Efisiensi birokrasi", "Produksi", "Manajemen", "Tenaga", "SDM"], "a": 0},
+        {"q": "UU terbaru Migas?", "o": ["UU 21/2001", "UU 22/2002", "UU 21/2002", "UU 21/2001", "UU 22/2001"], "a": 4},
+        {"q": "Waktu beban puncak JAMALI?", "o": ["18:00-22:00", "19:00-22:00", "17:00-21:00", "18:00-21:00", "17:00-22:00"], "a": 0},
+        {"q": "Visi kebijakan energi nasional?", "o": ["Terjamin penyediaan", "Intensitas", "Kompetitif", "Open access", "Konsumsi"], "a": 0},
+        {"q": "Tujuan DSM?", "o": ["Efisiensi energi", "Teknologi", "Usaha penunjang", "Kualitas jasa", "Penggunaan"], "a": 0},
+        {"q": "Kebijakan hemat energi hulu hilir disebut?", "o": ["Intensifikasi", "Diversifikasi", "Konversi", "Regulasi", "Kooperasi"], "a": 2},
+        {"q": "KTT Asia Afrika 2005 di?", "o": ["Kuala Lumpur", "Bangkok", "Bandung", "Mesir", "Singapura"], "a": 2},
+        {"q": "Teori variasi kebijakan masa lampau?", "o": ["Institusi", "Kelompok", "Inkrementalisme", "Rasional", "Chauvinisme"], "a": 2},
+        {"q": "Indonesia keluar OPEC tahun?", "o": ["2004", "2006", "2009", "2012", "2000"], "a": 2},
+        {"q": "Pertimbangan POLRI keluar ABRI?", "o": ["Citra", "Hukum", "Profesionalisme", "Keleluasaan", "Melindungi"], "a": 2},
+        {"q": "Paradigma baru peran politik TNI?", "o": ["Peningkatan", "Pemantapan", "Pengurangan", "Pembalasan", "Penambahan"], "a": 2},
+        {"q": "Urutan tertinggi hukum?", "o": ["MA", "UUD 1945", "Pancasila", "TAP MPR", "Keppres"], "a": 1},
+        {"q": "Pemerintah pusat adalah?", "o": ["MPR/MA", "Presiden/Wapres", "Presiden/DPR", "Presiden/MA", "Presiden/Wapres/Menteri"], "a": 4},
+        {"q": "Peran Pancasila?", "o": ["Dasar Negara", "Keimanan", "Kenegaraan", "Beragama", "Ketatanegaraan"], "a": 0},
+        {"q": "Bukan otonomi (UU 22/1999)?", "o": ["Pendidikan", "Agama", "Sosial", "Pertahanan", "Kesehatan"], "a": 3},
+        {"q": "Susunan pemda otonom (UU 22/1999)?", "o": ["Kepala/Wakil", "Kepala/DPRD", "Eksekutif", "Dinas", "Tripida"], "a": 1},
+        {"q": "Propenas?", "o": ["Perencanaan", "Proyek", "Program", "Prosedur", "Pengembangan"], "a": 1},
+        {"q": "Kehakiman UUD 1945 Amandemen?", "o": ["Pasal 14", "Pasal 25", "Pasal 24", "Pasal 27", "Pasal 7"], "a": 2},
+        {"q": "Sistem pemerintahan Amandemen?", "o": ["Sentral", "Desentral", "Presidensiil", "Parlementer", "Monarki"], "a": 1},
+        {"q": "Dasar hukum MK?", "o": ["UU 21/2003", "UU 22/2003", "UU 23/2003", "UU 24/2003", "UU 25/2003"], "a": 3},
+        {"q": "Pasal amandemen kedua?", "o": ["18-35", "18-36", "18-37", "18-38", "18-35 (E)"], "a": 1},
+        {"q": "UUD 1945 saat RIS?", "o": ["Tidak berlaku", "Beberapa pasal", "Hanya Jakarta", "Seluruh", "Wilayah RI bagian RIS"], "a": 4},
+        {"q": "Pasal 32 Ayat 1 Budaya?", "o": ["Hak ilmu", "Dilandasi ragam", "Memajukan budaya", "Bahasa daerah", "Budaya asing"], "a": 2},
+        {"q": "Korban tenaga/waktu untuk sukses?", "o": ["Loyal", "Kompeten", "Adaptif", "Harmonis"], "a": 0},
+        {"q": "Ikuti teknologi untuk kualitas?", "o": ["Kompeten", "Amanah", "Adaptif", "Harmonis"], "a": 2},
+        {"q": "AKHLAK dibutuhkan karena?", "o": ["Identitas", "Norma", "Pemersatu", "Citra"], "a": 0},
+        {"q": "Bukan kunci Amanah?", "o": ["Integritas", "Sukses", "Tulus", "Dipercaya"], "a": 1},
+        {"q": "Amanah nomor?", "o": ["4", "3", "2", "1"], "a": 3},
+        {"q": "Urutan benar AKHLAK?", "o": ["A-Kol-H-L-Ad-Kom", "A-Kom-H-L-Ad-Kol", "Ad-Kom-H-L-A-Kol", "A-Kom-H-L-Agile-Kol"], "a": 1},
+        {"q": "Peduli & Hargai Perbedaan?", "o": ["Kompeten", "Harmonis", "Kolaboratif", "Amanah"], "a": 1},
+        {"q": "Terus belajar kapasitas?", "o": ["Kompeten", "Harmonis", "Kolaboratif", "Adaptif"], "a": 0},
+        {"q": "Integritas penting BUMN karena?", "o": ["Swasta", "Tanpa moral", "Lembaga dipercaya negara", "Tidak relevan"], "a": 2},
+        {"q": "Konflik kepentingan?", "o": ["Pribadi", "Menutupi", "Utamakan perusahaan", "Merugikan"], "a": 2},
+        {"q": "Nilai kompeten adalah?", "o": ["Komitmen", "Hargai", "Sinergi", "Kinerja memuaskan"], "a": 3},
+        {"q": "Rekan beda gagasan?", "o": ["Potong", "Potong cepat", "Persilakan sampai selesai", "Inti"], "a": 2},
+        {"q": "Jaga rahasia data perusahaan?", "o": ["Kompeten", "Akhlak", "Kolaboratif", "Amanah"], "a": 3},
+        {"q": "Berani sampaikan indikasi rugi?", "o": ["Loyal", "Kompeten", "Amanah", "Adaptif"], "a": 0},
+        {"q": "Tulus sesuai?", "o": ["Loyal", "Amanah", "Kolaboratif", "Kompeten"], "a": 0},
+        {"q": "Saling bantu sesama?", "o": ["Peduli", "Harmonis", "Adaptif", "Kolaboratif"], "a": 1},
+        {"q": "Bagian Loyal?", "o": ["Komitmen", "Kompetensi", "Dedikasi", "Kontribusi"], "a": 0},
+        {"q": "Rekan ada masalah pribadi?", "o": ["Bantu", "Tidak terlibat", "Tidak peduli", "Abaikan"], "a": 0},
+        {"q": "Masalah kewajiban?", "o": ["Tanggung jawab", "Cari penyebab", "Cermati", "Kronologi"], "a": 0},
+        {"q": "Kunci Adaptif?", "o": ["Batin", "Uji coba", "Kemanusiaan", "Antusias inovatif proaktif"], "a": 3},
+        {"q": "Resign sebelum ikatan dinas?", "o": ["Kurang profesional", "Dapat diterima"], "a": 0},
+        {"q": "Rekan pakai bahasa daerah?", "o": ["Beri tahu salah paham", "Tegur langsung"], "a": 0},
+        {"q": "Dikritik rekan kerja?", "o": ["Ajak diskusi", "Tetap pendirian"], "a": 0},
+        {"q": "Tim Gen Z?", "o": ["Disiplinkan", "Tugas sesuai kelebihan"], "a": 1},
+        {"q": "Alat rusak?", "o": ["Menunggu", "Kerjakan yang bisa"], "a": 1},
+        {"q": "Metode wawasan inovatif?", "o": ["Liburan", "Diskusi"], "a": 1},
+        {"q": "Data tak terpakai?", "o": ["Sayang sekali", "Wajar"], "a": 0},
+        {"q": "Tugas penting, rekan bantu?", "o": ["Langsung bantu", "Tunggu selesai"], "a": 1},
+        {"q": "Perubahan lingkungan bisnis?", "o": ["Belajar baru", "Tunggu arahan"], "a": 0},
+        {"q": "Luar deskripsi kerja?", "o": ["Tolak", "Terima tantangan"], "a": 1},
+        {"q": "Bekerja tim?", "o": ["Ide inovatif", "Ikuti ide"], "a": 0},
+        {"q": "Dikritik atasan?", "o": ["Kecewa", "Bahan evaluasi"], "a": 1},
+        {"q": "Masalah sulit?", "o": ["Solusi sendiri dulu", "Tanya ahli"], "a": 0},
+        {"q": "Sukses perusahaan?", "o": ["Kerja keras", "Sinergi"], "a": 1},
+        {"q": "Rekan langgar etik?", "o": ["Biarkan", "Laporkan"], "a": 1},
+        {"q": "Pelanggan marah?", "o": ["Tenang dengarkan", "Balik marah"], "a": 0},
+        {"q": "Disiplin kerja?", "o": ["Terpaksa", "Tanggung jawab"], "a": 1},
+        {"q": "Target tim tak tercapai?", "o": ["Cari salah", "Evaluasi bersama"], "a": 1},
+        {"q": "Senang bekerja?", "o": ["Aturan kaku", "Ruang inovasi"], "a": 1},
+        {"q": "Integritas?", "o": ["Jujur konsisten", "Asal target"], "a": 0}
+    ];
+
+    let current = 0;
+    let userAns = new Array(rawData.length).fill(null);
+    let timeLeft = 5400;
+
+    function startTest() {
+        if(!document.getElementById('username').value) return alert("Masukkan Nama!");
+        document.getElementById('login-screen').style.display='none';
+        document.getElementById('test-screen').style.display='block';
+        render();
+        setInterval(() => {
+            if(timeLeft <= 0) confirmFinish();
+            timeLeft--;
+            let m = Math.floor(timeLeft/60);
+            let s = timeLeft%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0'+s:s}`;
+        }, 1000);
+    }
+
+    function render() {
+        const q = rawData[current];
+        document.getElementById('q-num').innerText = `SOAL NO. ${current + 1}`;
+        document.getElementById('q-text').innerText = q.q;
+        let h = "";
+        q.o.forEach((o, i) => {
+            h += `<div class="opt ${userAns[current]===i?'selected':''}" onclick="pick(${i})">${String.fromCharCode(65+i)}. ${o}</div>`;
+        });
+        document.getElementById('options-container').innerHTML = h;
+        let n = "";
+        rawData.forEach((_, i) => {
+            n += `<div class="nav-item ${userAns[i]!==null?'filled':''} ${current===i?'active':''}" onclick="current=${i};render()">${i+1}</div>`;
+        });
+        document.getElementById('nav-grid').innerHTML = n;
+    }
+
+    function pick(i) {
+        userAns[current] = i;
+        render();
+        // AUTO NEXT LOGIC
+        if (current < rawData.length - 1) {
+            setTimeout(() => { changeQ(1); }, 300); 
+        }
+    }
+
+    function changeQ(d) {
+        current = Math.max(0, Math.min(rawData.length-1, current+d));
+        render();
+    }
+
+    function confirmFinish() {
+        if(confirm("Selesaikan ujian?")) {
+            let score = 0, h = "";
+            rawData.forEach((q, i) => {
+                let isC = userAns[i] === q.a;
+                if(isC) score++;
+                h += `<tr><td>${i+1}</td><td class="${isC?'correct':'wrong'}">${userAns[i]!==null?String.fromCharCode(65+userAns[i]):'-'}</td><td>${String.fromCharCode(65+q.a)}</td><td class="${isC?'correct':'wrong'}">${isC?'BENAR':'SALAH'}</td></tr>`;
+            });
+            document.getElementById('test-screen').style.display='none';
+            document.getElementById('result-screen').style.display='block';
+            document.getElementById('score-val').innerText = Math.round((score/rawData.length)*100);
+            document.getElementById('res-name').innerText = document.getElementById('username').value;
+            document.getElementById('recap-body').innerHTML = h;
+        }
+    }
+</script>
+</body>
+</html>

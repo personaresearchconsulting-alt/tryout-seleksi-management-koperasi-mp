@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tes Kecerdasan 3 HOTS - Persona Research And Consulting</title>
+    <style>
+        :root { --primary: #1a4a7a; --bg: #fdfaf5; --accent: #c5a059; --navy: #002366; }
+        body { font-family: 'Arial', sans-serif; margin: 0; background: var(--bg); color: #333; -webkit-user-select: none; user-select: none; }
+        .app-footer { text-align: center; padding: 25px; color: #666; font-size: 14px; width: 100%; box-sizing: border-box; }
+        .login-container { max-width: 450px; margin: 60px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 1px solid #ddd; }
+        .logo-pc { background: #000; color: white; width: 70px; height: 70px; line-height: 70px; border-radius: 15px; margin: 0 auto 20px; font-weight: bold; font-size: 28px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
+        .btn-main { width: 100%; padding: 16px; background: var(--navy); color: var(--accent); border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s; border: 1px solid var(--accent); }
+        .wrapper { display: none; max-width: 1200px; margin: 20px auto; padding: 20px; display: flex; gap: 25px; }
+        .content-area { flex: 3; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); min-height: 500px; border-top: 5px solid var(--navy); }
+        .sidebar-right { flex: 1; background: white; padding: 25px; border-radius: 15px; height: fit-content; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: sticky; top: 20px; border: 1px solid var(--accent); }
+        .q-text { font-size: 22px; font-weight: bold; margin-bottom: 25px; color: #111; line-height: 1.4; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .opt-box { padding: 15px 20px; border: 1px solid #eee; border-radius: 12px; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; font-size: 18px; transition: 0.2s; }
+        .opt-box.selected { background: var(--navy); color: white; border-color: var(--navy); }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .nav-item { padding: 10px; border: 1px solid #ddd; text-align: center; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .nav-item.filled { background: var(--accent); color: white; border-color: var(--accent); }
+        .nav-item.active { border: 2px solid var(--navy); }
+        .teach-box { background: #fffdf0; border-left: 8px solid var(--accent); padding: 30px; margin-bottom: 30px; border-radius: 10px; }
+        #timer { text-align: center; font-size: 32px; font-weight: bold; color: #d9534f; margin-bottom: 20px; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="page-login" class="login-container">
+    <div class="logo-pc">PRC</div>
+    <h1 style="letter-spacing:2px; margin:10px 0; color: var(--navy);">TES KECERDASAN 3 (HOTS)</h1>
+    <div style="color:#666; margin-bottom:30px; font-weight: bold;">Persona Research And Consulting</div>
+    <input type="text" id="inName" placeholder="NAMA LENGKAP PESERTA" autocomplete="off">
+    <button class="btn-main" onclick="mulaiTes()">MULAI ANALISIS</button>
+    <div class="app-footer"><b>Persona Research and Consulting 2026</b></div>
+</div>
+
+<div id="page-quiz" style="display:none;">
+    <div class="wrapper" id="quizWrapper">
+        <div class="content-area">
+            <div id="main-q" class="q-text"></div>
+            <div id="main-opts"></div>
+            <div style="margin-top: 40px; display: flex; justify-content: space-between;" class="no-print">
+                <button class="btn-main" style="width: 150px; background: #666; border:none; color:white;" onclick="arah(-1)">Kembali</button>
+                <button class="btn-main" style="width: 150px;" id="btn-next" onclick="arah(1)">Lanjut</button>
+            </div>
+        </div>
+        <div class="sidebar-right no-print">
+            <div id="timer">30:00</div>
+            <div style="font-weight: bold; font-size: 12px; color: var(--navy); margin-bottom: 10px; text-align: center;">NAVIGASI SOAL</div>
+            <div class="nav-grid" id="nav-nums"></div>
+        </div>
+    </div>
+</div>
+
+<div id="page-result" style="display:none; max-width: 950px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    <h2 style="text-align:center; color: var(--navy);">HASIL EVALUASI PSIKOMETRIK</h2>
+    <div id="score-big" style="text-align:center; font-size:80px; font-weight:bold; color:var(--accent);">0</div>
+    <div id="discussion-list"></div>
+    <button class="btn-main no-print" onclick="location.reload()">LOGOUT</button>
+</div>
+
+<script>
+    let idx = 0; let userAns = {}; let timerDuration = 1800; let bank = [];
+    
+    const masterData = [
+        // BAHASA HOTS
+        { q: "EPIGON : ...", o: ["Penerus ajaran", "Penulis biografi", "Penentang teori", "Pencipta istilah", "Pemalsu karya"], a: 0, h: "Epigon adalah orang yang tidak memiliki gagasan baru dan hanya mengikuti jejak pemikir atau seniman besar sebelumnya." },
+        { q: "REKALSITRAN >< ...", o: ["Pembangkang", "Penurut", "Revolusioner", "Konservatif", "Inovatif"], a: 1, h: "Rekalsitran berarti keras kepala atau sulit diatur, lawan katanya adalah penurut." },
+        { q: "TELUR : ETOLOGI = ... : ...", o: ["Fosil : Paleontologi", "Batuan : Arkeologi", "Masyarakat : Antropologi", "Ikan : Ikhtiologi", "Penyakit : Patologi"], a: 3, h: "Analogi objek dan ilmu yang mempelajarinya. Etologi (perilaku hewan), Ikhtiologi (ikan)." },
+        { q: "Lawan kata dari 'PROGRESIF' dalam konteks sosial adalah...", o: ["Statis", "Regresi", "Ortodoks", "Radikal", "Moderat"], a: 2, h: "Progresif berorientasi pada kemajuan, Ortodoks berpegang teguh pada aturan/pandangan lama yang kaku." },
+        { q: "Kalimat yang menggunakan kata serapan secara tepat adalah...", o: ["Sistim itu sangat efektif", "Ia sedang menganalisa data", "Kualitas produk sangat prima", "Resiko ditanggung pemenang", "Managemen perusahaan buruk"], a: 2, h: "Kata baku: Sistem, Menganalisis, Kualitas, Risiko, Manajemen." },
+
+        // HITUNGAN HOTS
+        { q: "Jika harga sebuah barang naik 25%, berapa persen konsumsi harus dikurangi agar pengeluaran tetap sama?", o: ["15%", "20%", "25%", "30%", "35%"], a: 1, h: "Rumus: (r / 100+r) x 100%. (25/125) x 100% = 20%." },
+        { q: "Rata-rata tinggi 10 siswa adalah 160 cm. Jika 1 siswa baru masuk, rata-ratanya naik menjadi 161 cm. Berapa tinggi siswa baru tersebut?", o: ["161 cm", "170 cm", "171 cm", "175 cm", "180 cm"], a: 2, h: "(11 x 161) - (10 x 160) = 1771 - 1600 = 171 cm." },
+        { q: "Sebuah proyek selesai dalam 30 hari oleh 15 pekerja. Jika pekerja ditambah 3 orang, berapa hari proyek selesai?", o: ["20 hari", "22 hari", "25 hari", "27 hari", "28 hari"], a: 2, h: "Perbandingan berbalik nilai: (30 x 15) / 18 = 25 hari." },
+        { q: "Deret: 1, 4, 10, 22, 46, ...", o: ["68", "72", "90", "94", "100"], a: 3, h: "Pola: (n x 2) + 2. (46 x 2) + 2 = 94." },
+        { q: "Hasil dari (1/2 + 1/3) : (1/4 - 1/6) adalah...", o: ["2", "5", "8", "10", "12"], a: 3, h: "(5/6) : (2/24) = (5/6) x (12/1) = 10." },
+
+        // UMUM HOTS
+        { q: "Dalam koperasi, SHU dibagi berdasarkan...", o: ["Besar modal", "Jabatan", "Jasa anggota", "Lama keanggotaan", "Kehadiran RAT"], a: 2, h: "Prinsip koperasi: pembagian SHU dilakukan secara adil sebanding dengan besarnya jasa usaha masing-masing anggota." },
+        { q: "Koperasi yang anggotanya minimal 20 orang perorangan disebut...", o: ["Kop. Primer", "Kop. Sekunder", "Induk Kop", "Pusat Kop", "Gabungan Kop"], a: 0, h: "Koperasi Primer dibentuk oleh sekurang-kurangnya 20 orang." },
+        { q: "Dokumen tertulis yang memuat aturan main internal koperasi adalah...", o: ["UUD 45", "Undang-Undang", "AD/ART", "Nota Dinas", "SK Pengurus"], a: 2, h: "Anggaran Dasar dan Anggaran Rumah Tangga (AD/ART)." },
+        { q: "Tujuan utama koperasi di Indonesia menurut UU No. 25 Tahun 1992 adalah...", o: ["Mencari profit", "Menyaingi bank", "Kesejahteraan anggota", "Bantuan sosial", "Pinjaman murah"], a: 2, h: "Memajukan kesejahteraan anggota pada khususnya dan masyarakat pada umumnya." },
+        { q: "Siapakah yang memberikan opini hukum dalam audit koperasi?", o: ["Manajer", "Pengawas", "Akuntan Publik", "Anggota", "Ketua"], a: 2, h: "Audit dilakukan oleh pengawas internal atau akuntan publik untuk audit eksternal." },
+
+        // RUANG & GAMBAR HOTS
+        { q: "Jika sebuah kubus dipotong tepat pada diagonal ruangnya, bidang potongnya berbentuk...", o: ["Segitiga", "Persegi", "Persegi Panjang", "Jajar Genjang", "Trapesium"], a: 2, h: "Bidang diagonal kubus berbentuk persegi panjang." },
+        { q: "Bayangan sebuah benda pada jam 09.00 pagi akan mengarah ke...", o: ["Timur", "Barat", "Utara", "Selatan", "Barat Laut"], a: 1, h: "Matahari di Timur, maka bayangan jatuh ke arah sebaliknya (Barat)." },
+        { q: "Pola: Lingkaran di dalam kotak -> Kotak di dalam segitiga -> Segitiga di dalam lingkaran -> ...", o: ["Lingkaran/Kotak", "Kotak/Segitiga", "Segitiga/Segitiga", "Titik/Garis", "Kotak/Lingkaran"], a: 0, h: "Pola rotasi posisi bangun datar utama." },
+        { q: "Manakah bangun yang memiliki simetri putar tingkat tak terhingga?", o: ["Persegi", "Segitiga Sama Sisi", "Lingkaran", "Oval", "Bintang"], a: 2, h: "Lingkaran dapat diputar pada sudut berapapun dan tetap terlihat sama." },
+        { q: "Sebuah balok memiliki 12 rusuk. Berapa banyak diagonal ruangnya?", o: ["4", "6", "8", "12", "16"], a: 0, h: "Setiap bangun ruang prisma segiempat (balok/kubus) memiliki 4 diagonal ruang." },
+        { q: "Jika jaring-jaring kubus terdiri dari 6 persegi, maka jaring-jaring tabung terdiri dari...", o: ["3 Lingkaran", "2 Lingkaran 1 Persegi Panjang", "1 Lingkaran 1 Elips", "2 Lingkaran 2 Persegi", "3 Persegi Panjang"], a: 1, h: "Alas dan tutup (lingkaran) serta selimut (persegi panjang)." },
+        { q: "Sudut yang terbentuk antara jarum jam dan jarum menit pada pukul 03.30 adalah...", o: ["75°", "80°", "85°", "90°", "105°"], a: 0, h: "Jarum jam: (3x30) + (30/60x30) = 105°. Jarum menit: 30x6 = 180°. Selisih: 75°." },
+        { q: "Volume silinder akan menjadi ... kali lipat jika jari-jarinya diduakalikan (tinggi tetap).", o: ["2", "4", "6", "8", "10"], a: 1, h: "Rumus V = πr²t. Jika r jadi 2r, maka (2r)² = 4r². Volume jadi 4 kali lipat." },
+        { q: "Manakah yang merupakan sudut refleksi?", o: ["45°", "120°", "180°", "210°", "90°"], a: 3, h: "Sudut refleksi adalah sudut yang besarnya antara 180° dan 360°." },
+        { q: "Jika sebuah limas segitiga dipotong sejajar alas, bentuk irisannya adalah...", o: ["Kotak", "Segitiga", "Trapesium", "Lingkaran", "Titik"], a: 1, h: "Irisan yang sejajar dengan alas pada limas akan menghasilkan bentuk yang sama dengan alasnya." }
+    ];
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function mulaiTes() {
+        const name = document.getElementById('inName').value;
+        if(!name) return alert("Identitas Peserta Wajib Diisi!");
+        bank = shuffle([...masterData]); 
+        // Mengacak posisi jawaban di dalam setiap soal
+        bank.forEach(item => {
+            let originalAns = item.o[item.a];
+            item.o = shuffle([...item.o]);
+            item.a = item.o.indexOf(originalAns);
+        });
+        document.getElementById('page-login').style.display = 'none';
+        document.getElementById('page-quiz').style.display = 'block';
+        update(); startTimer(timerDuration);
+    }
+
+    function update() {
+        const s = bank[idx]; 
+        document.getElementById('main-q').innerHTML = `<span style="color:var(--accent)">Analisis Soal ${idx+1}:</span><br>${s.q}`;
+        let h = ""; 
+        s.o.forEach((opt, i) => {
+            const sel = userAns[idx] === i ? 'selected' : '';
+            h += `<div class="opt-box ${sel}" onclick="pilih(${i})"><span style="font-weight:bold; width:30px;">${String.fromCharCode(65+i)}.</span> ${opt}</div>`;
+        });
+        document.getElementById('main-opts').innerHTML = h;
+        document.getElementById('btn-next').innerText = idx === bank.length-1 ? "SELESAI" : "LANJUT";
+        nav();
+    }
+
+    function pilih(i) { 
+        userAns[idx] = i; 
+        update(); 
+        if(idx < bank.length-1) setTimeout(()=>arah(1), 350); 
+    }
+
+    function arah(n) { 
+        if(n===1 && idx===bank.length-1) return finish(); 
+        idx+=n; if(idx < 0) idx = 0; update(); 
+    }
+
+    function nav() {
+        let h = ""; bank.forEach((_, i) => {
+            let c = (i===idx)?"nav-item active":"nav-item"; if(userAns[i]!==undefined) c+=" filled";
+            h += `<div class="${c}" onclick="idx=${i};update();">${i+1}</div>`;
+        }); document.getElementById('nav-nums').innerHTML = h;
+    }
+
+    function startTimer(s) {
+        const t = setInterval(() => {
+            let m = Math.floor(s/60); let sec = s%60;
+            document.getElementById('timer').innerText = `${m}:${sec<10?'0':''}${sec}`;
+            if(s > 0) s--; else { clearInterval(t); finish(); }
+        }, 1000);
+    }
+
+    function finish() {
+        document.getElementById('page-quiz').style.display='none'; 
+        document.getElementById('page-result').style.display='block';
+        let benar = 0; let dHtml = "";
+        bank.forEach((s, i) => {
+            const isCorrect = userAns[i] === s.a;
+            if(isCorrect) benar++;
+            dHtml += `<div class="teach-box">
+                <b style="color:var(--navy)">Butir Analisis ${i+1}</b>
+                <p>${s.q}</p>
+                <p>Respon Anda: <b>${userAns[i]!==undefined ? String.fromCharCode(65+userAns[i]) : '-'}</b></p>
+                <b style="color:green">Validasi: ${String.fromCharCode(65+s.a)} (${s.o[s.a]})</b>
+                <div style="margin-top:10px; font-size:14px; border-top:1px solid #ddd; padding-top:5px;"><i>Logika: ${s.h}</i></div>
+            </div>`;
+        });
+        document.getElementById('score-big').innerText = Math.round((benar/bank.length)*100);
+        document.getElementById('discussion-list').innerHTML = `<h3 style="border-bottom:2px solid var(--accent); padding-bottom:10px;">Laporan Evaluasi:</h3>${dHtml}`;
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>

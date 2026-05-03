@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASSESSMENT KDKMP 50 HOTS - Persona Research & Consulting</title>
+    <style>
+        :root { --primary: #002366; --gold: #c5a059; --bg: #f5f7fa; --text: #2d3436; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--bg); color: var(--text); -webkit-user-select: none; user-select: none; }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .login-screen { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .test-container { display: none; max-width: 1250px; margin: 20px auto; padding: 20px; display: flex; gap: 25px; }
+        .question-area { flex: 3; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 550px; }
+        .sidebar { flex: 1; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
+        .q-text { font-size: 17px; font-weight: 600; margin-bottom: 25px; line-height: 1.8; text-align: justify; color: #1e272e; }
+        .opt-card { padding: 14px; border: 2px solid #f1f2f6; border-radius: 10px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; display: flex; align-items: center; font-size: 15px; }
+        .opt-card:hover { border-color: var(--primary); background: #f8faff; }
+        .opt-card.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 15px; max-height: 350px; overflow-y: auto; padding: 10px; border: 1px solid #eee; border-radius: 8px; }
+        .nav-btn { padding: 8px; border: 1px solid #dfe4ea; text-align: center; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 12px; }
+        .nav-btn.filled { background: var(--primary); color: white; }
+        .nav-btn.current { border: 2px solid var(--gold); }
+        #timer { font-size: 32px; font-weight: bold; color: #d63031; text-align: center; margin-bottom: 10px; }
+        .result-screen { display: none; max-width: 950px; margin: 40px auto; background: white; padding: 50px; border-radius: 20px; }
+        .discussion { background: #fdfaff; border-left: 5px solid var(--primary); padding: 20px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; line-height: 1.6; }
+        .btn { padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn-primary { background: var(--primary); color: white; }
+        input { width: 100%; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="screen-login">
+    <div class="login-screen">
+        <div style="background:var(--primary); color:var(--gold); padding:15px; border-radius:10px; margin-bottom:20px; font-weight:bold; font-size:24px;">PRC</div>
+        <h3>KDKMP ASSESSMENT - 50 HOTS</h3>
+        <p style="font-size:13px; color:#636e72;">Assessment: Manajemen & Kelembagaan Koperasi<br>50 Soal | Skor: Benar +2 | Waktu: 75 Menit</p>
+        <input type="text" id="pName" placeholder="Nama Lengkap Peserta">
+        <button class="btn btn-primary" style="width:100%" onclick="initTest()">Mulai Ujian</button>
+        <p style="font-size:10px; margin-top:20px; color:#b2bec3;">Persona Research & Consulting | Sistem Ujian 2026</p>
+    </div>
+</div>
+
+<div id="screen-test" style="display:none;">
+    <div class="header"><h2 style="margin:0">SIMULASI KDKMP (50 SOAL ANALISIS)</h2></div>
+    <div class="test-container">
+        <div class="question-area">
+            <div id="qText" class="q-text"></div>
+            <div id="qOpts"></div>
+            <div style="margin-top:40px; display:flex; justify-content: space-between;">
+                <button class="btn" style="background:#b2bec3" onclick="navigate(-1)">Sebelumnya</button>
+                <button class="btn btn-primary" id="btnNext" onclick="navigate(1)">Lanjut</button>
+            </div>
+        </div>
+        <div class="sidebar">
+            <div id="timer">75:00</div>
+            <div class="nav-grid" id="navGrid"></div>
+        </div>
+    </div>
+</div>
+
+<div id="screen-result" class="result-screen">
+    <h1 style="text-align:center; color:var(--primary)">LAPORAN HASIL ASESMEN</h1>
+    <div id="finalScore" style="font-size:100px; text-align:center; font-weight:bold; color:var(--gold); margin:10px 0;">0</div>
+    <div id="pDetails" style="text-align:center; margin-bottom:40px; font-weight:bold;"></div>
+    <hr><div id="reviewBox"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="location.reload()">Selesai & Keluar</button>
+</div>
+
+<script>
+    // Konfigurasi Kadaluwarsa[cite: 4]
+    const EXPIRE = new Date("2026-07-01");
+    if (new Date() > EXPIRE) {
+        document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;'>Link Akses Kadaluwarsa.</h1>";
+    }
+
+    let currentIdx = 0, userAns = {}, timer = 4500; // 75 Menit
+
+    const baseQuestions = [
+        { q: "Koperasi 'Maju Jaya' mengalami penurunan partisipasi anggota secara drastis dalam RAT. Setelah dianalisis, anggota merasa suara mereka tidak berpengaruh karena dominasi kelompok tertentu. Prinsip koperasi mana yang paling krusial untuk diperbaiki?", o: ["Kemandirian", "Demokrasi Anggota", "Pendidikan Perkoperasian", "Kerjasama Antar Koperasi", "Pembagian SHU seadil-adilnya"], c: "Demokrasi Anggota", h: "Demokrasi adalah pilar utama di mana setiap anggota memiliki hak suara yang sama (one man one vote) untuk mengontrol kebijakan." },
+        { q: "Sebuah koperasi simpan pinjam memiliki NPL (Non-Performing Loan) di atas 10%. Secara manajerial, langkah mitigasi risiko apa yang paling prioritas?", o: ["Menambah pinjaman baru untuk menutupi kerugian", "Melakukan restrukturisasi kredit dan penguatan analisis watak (character) calon peminjam", "Menutup koperasi sementara waktu", "Membagikan seluruh dana cadangan kepada pengurus", "Menaikkan bunga simpanan setinggi-tingginya"], c: "Melakukan restrukturisasi kredit dan penguatan analisis watak (character) calon peminjam", h: "Manajemen risiko kredit harus fokus pada kualitas aset melalui restrukturisasi dan perbaikan seleksi." },
+        { q: "Ketua Pengurus koperasi mengambil keputusan investasi besar tanpa melalui forum Rapat Anggota, padahal investasi tersebut berisiko tinggi. Secara hukum kelembagaan, tindakan ini dapat berakibat...", o: ["Tanggung jawab pribadi pengurus jika terjadi kerugian (Piercing the corporate veil)", "Penghargaan dari anggota karena berani mengambil risiko", "Koperasi otomatis mendapatkan subsidi pemerintah", "Peningkatan nilai saham anggota secara mendadak", "Keputusan tersebut dianggap sah secara mutlak"], c: "Tanggung jawab pribadi pengurus jika terjadi kerugian (Piercing the corporate veil)", h: "Keputusan di luar wewenang (Ultra Vires) tanpa persetujuan RAT menjadi tanggung jawab pribadi pengurus." },
+        { q: "Dalam laporan keuangan, rasio likuiditas koperasi menunjukkan angka 80%. Hal ini mengindikasikan bahwa...", o: ["Koperasi sangat sehat dan mampu membayar hutang lancar", "Koperasi berisiko gagal bayar hutang jangka pendek (Under Liquidity)", "Koperasi memiliki terlalu banyak uang tunai yang menganggur", "Anggota harus segera menarik seluruh simpanannya", "Modal sendiri koperasi lebih besar dari hutang"], c: "Koperasi berisiko gagal bayar hutang jangka pendek (Under Liquidity)", h: "Rasio di bawah 100% menunjukkan aset lancar tidak cukup untuk menutupi kewajiban jangka pendek." },
+        { q: "Koperasi sekunder memiliki fungsi strategis sebagai 'central body'. Apa peran utamanya terhadap koperasi primer?", o: ["Mengambil alih seluruh keuntungan koperasi primer", "Memberikan penguatan permodalan, bimbingan, dan daya tawar kolektif", "Menghapus otonomi koperasi primer", "Menjadi pesaing utama koperasi primer di pasar", "Melakukan audit harian terhadap kasir koperasi primer"], c: "Memberikan penguatan permodalan, bimbingan, dan daya tawar kolektif", h: "Koperasi sekunder dibentuk untuk meningkatkan efisiensi dan skala ekonomi koperasi primer." },
+        { q: "Indikator keberhasilan koperasi yang membedakannya dengan perusahaan swasta (PT) adalah...", o: ["Besarnya profit yang dihasilkan perusahaan", "Peningkatan kesejahteraan anggota melalui manfaat layanan dan SHU", "Harga saham yang melonjak di bursa efek", "Jumlah direktur yang memiliki gelar profesor", "Efisiensi pengurangan jumlah karyawan secara besar-besaran"], c: "Peningkatan kesejahteraan anggota melalui manfaat layanan dan SHU", h: "Koperasi berorientasi pada anggota (member-oriented), bukan semata-mata laba modal (capital-oriented)." },
+        { q: "Dana Cadangan koperasi menurut undang-undang tidak boleh dibagikan kepada anggota saat operasional berjalan karena berfungsi untuk...", o: ["Membiayai liburan pengurus", "Menutup kerugian koperasi di masa depan", "Menjadi agunan pinjaman pribadi ketua", "Membeli kendaraan mewah operasional", "Membayar pajak penghasilan anggota"], c: "Menutup kerugian koperasi di masa depan", h: "Dana cadangan adalah modal permanen untuk menjaga stabilitas dan menanggung risiko kerugian." },
+        { q: "Jika seorang manajer koperasi melakukan penggelapan dana, pihak yang paling berwenang secara internal untuk melakukan pemeriksaan awal dan melaporkan ke RAT adalah...", o: ["Dinas Koperasi", "Dewan Pengawas", "Anggota baru", "Karyawan magang", "Bank mitra"], c: "Dewan Pengawas", h: "Pengawas memiliki fungsi pengawasan terhadap manajemen dan kebijakan koperasi." },
+        { q: "Hilirisasi usaha pada koperasi produsen bertujuan untuk...", o: ["Menjual bahan mentah sebanyak-banyaknya ke tengkulak", "Memberikan nilai tambah pada produk anggota melalui proses pengolahan", "Mengurangi jumlah anggota yang aktif berproduksi", "Menutup akses pasar bagi petani kecil", "Menaikkan biaya iuran anggota"], c: "Memberikan nilai tambah pada produk anggota melalui proses pengolahan", h: "Dengan mengolah bahan mentah menjadi produk jadi, anggota mendapatkan margin keuntungan lebih besar." },
+        { q: "Prinsip 'Kemandirian' dalam koperasi berarti bahwa koperasi harus...", o: ["Bekerja sendiri tanpa butuh anggota", "Mampu berdiri sendiri tanpa ketergantungan pada pihak luar yang mengikat", "Menolak kerjasama dengan pihak pemerintah", "Hanya menggunakan teknologi manual", "Tidak memerlukan sistem akuntansi"], c: "Mampu berdiri sendiri tanpa ketergantungan pada pihak luar yang mengikat", h: "Kemandirian menjaga agar koperasi tetap setia pada kepentingan anggota, bukan kepentingan penyandang dana luar." }
+    ];
+
+    // Melengkapi hingga 50 soal dengan logika kategori secara otomatis
+    for(let i=11; i<=50; i++) {
+        const categories = [
+            {t: "Audit", q: "Temuan audit menunjukkan adanya 'off-balance sheet' yang tidak tercatat. Risiko utama kelembagaan ini adalah...", o: ["Transparansi menurun", "Laba naik", "Pajak hilang", "Anggota senang", "Biaya hemat"], c: "Transparansi menurun", h: "Ketidakjujuran pelaporan merusak kepercayaan anggota."},
+            {t: "Digital", q: "Transformasi digital di koperasi seringkali gagal karena resistensi budaya. Langkah manajemen terbaik adalah...", o: ["Edukasi anggota", "Paksa sistem", "Beli alat", "Pecat staf", "Diam saja"], c: "Edukasi anggota", h: "Perubahan teknologi harus diikuti dengan perubahan pola pikir (mindset)."},
+            {t: "Modal", q: "Pinjaman anggota yang macet dapat mengakibatkan 'Capital Erosion'. Apa dampaknya?", o: ["Modal habis", "Aset naik", "Laba naik", "Anggota kaya", "Hutang lunas"], c: "Modal habis", h: "Kemacetan pinjaman memakan modal sendiri koperasi."},
+            {t: "RAT", q: "RAT Luar Biasa dapat dilaksanakan apabila...", o: ["Keadaan darurat", "Ketua ingin", "Anggota cuti", "Laba tinggi", "Libur nasional"], c: "Keadaan darurat", h: "RATLB dilakukan untuk keputusan krusial yang tidak bisa menunggu RAT tahunan."}
+        ];
+        const pick = types[i % 3];
+        questions.push({
+            q: `[NOMOR ${i} - ${pick.t}] ${pick.q}`,
+            o: pick.o,
+            c: pick.c,
+            h: pick.h
+        });
+    }
+
+    function initTest() {
+        if(!document.getElementById('pName').value) return alert("Silakan masukkan Nama Lengkap!");[cite: 4]
+        document.getElementById('screen-login').style.display = 'none';
+        document.getElementById('screen-test').style.display = 'block';
+        renderQ();
+        let interval = setInterval(() => {
+            timer--;
+            let m = Math.floor(timer/60), s = timer%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+            if(timer <= 0) { clearInterval(interval); autoFinish(); }
+        }, 1000);
+    }
+
+    function renderQ() {
+        const q = questions[currentIdx];
+        document.getElementById('qText').innerHTML = `<span style="color:var(--gold); font-size:14px;">SOAL ${currentIdx+1} DARI 50</span><br><br>${q.q}`;
+        let h = "";
+        q.o.forEach((opt, i) => {
+            const active = userAns[currentIdx] === opt ? "active" : "";
+            h += `<div class="opt-card ${active}" onclick="select('${opt}')"><b>${String.fromCharCode(65+i)}.</b> &nbsp; ${opt}</div>`;
+        });
+        document.getElementById('qOpts').innerHTML = h;
+        document.getElementById('btnNext').innerText = currentIdx === 49 ? "SELESAI" : "LANJUT";
+        updateNav();
+    }
+
+    function select(val) { userAns[currentIdx] = val; renderQ(); }
+
+    function navigate(n) { 
+        if(n === 1 && currentIdx === 49) return finalize();
+        currentIdx += n;
+        if(currentIdx < 0) currentIdx = 0;
+        renderQ();
+    }
+
+    function updateNav() {
+        let h = ""; questions.forEach((_, i) => {
+            let cls = i === currentIdx ? "nav-btn current" : "nav-btn";
+            if(userAns[i]) cls += " filled";
+            h += `<div class="${cls}" onclick="currentIdx=${i};renderQ()">${i+1}</div>`;
+        });
+        document.getElementById('navGrid').innerHTML = h;
+    }
+
+    function finalize() { if(confirm("Kirim jawaban sekarang?")) autoFinish(); }
+
+    function autoFinish() {
+        document.getElementById('screen-test').style.display = 'none';
+        document.getElementById('screen-result').style.display = 'block';
+        let score = 0, rHtml = "";
+        questions.forEach((q, i) => {
+            const u = userAns[i] || "Kosong";
+            const isC = u === q.c;
+            if(isC) score += 2; // +2 poin per soal[cite: 4]
+            rHtml += `<div class="discussion"><b>SOAL ${i+1}</b><br>${q.q}<hr>Jawaban: ${u} ${isC?'✅':'❌'}<br>Kunci: ${q.c}<br><i>${q.h}</i></div>`;
+        });
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('pDetails').innerText = `Nama: ${document.getElementById('pName').value} | Skor: ${score}/100`;
+        document.getElementById('reviewBox').innerHTML = rHtml;
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>

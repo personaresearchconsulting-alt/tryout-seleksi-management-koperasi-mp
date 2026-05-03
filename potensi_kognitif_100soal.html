@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAT Premium - Persona Research & Consulting</title>
+    <style>
+        :root { --primary: #001f3f; --gold: #d4af37; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: var(--bg); color: #333; -webkit-user-select: none; user-select: none; }
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--gold); position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1100px; margin: 20px auto; display: flex; gap: 20px; padding: 0 15px; }
+        .main-content { flex: 3; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .sidebar { flex: 1; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 90px; height: fit-content; }
+        .q-text { font-size: 1.25rem; font-weight: 600; margin-bottom: 25px; line-height: 1.6; color: #111; }
+        .option { display: flex; align-items: center; padding: 15px; margin: 12px 0; border: 2px solid #eee; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .option:hover { border-color: var(--primary); background: #f0f4f8; }
+        .option.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; max-height: 350px; overflow-y: auto; padding-right: 5px; }
+        .nav-btn { padding: 10px 5px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 0.85rem; text-align: center; border-radius: 5px; font-weight: bold; }
+        .nav-btn.active { border: 2px solid var(--gold); background: #fffdf0; }
+        .nav-btn.filled { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-action { padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        .btn-next { background: var(--primary); color: white; }
+        .btn-prev { background: #6c757d; color: white; }
+        #timer { font-size: 2rem; font-weight: bold; color: #d9534f; text-align: center; margin-bottom: 10px; font-family: monospace; }
+        .login-box { max-width: 450px; margin: 80px auto; background: white; padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid #eee; }
+        .teach-box { background: #fffdf0; border-left: 6px solid var(--gold); padding: 20px; margin-top: 15px; border-radius: 4px; font-size: 0.95rem; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="login-screen" class="login-box">
+    <div style="background: #000; color: #fff; width: 60px; height: 60px; line-height: 60px; border-radius: 12px; margin: 0 auto 20px; font-weight: bold; font-size: 24px;">PRC</div>
+    <h2 style="color: var(--primary); margin-bottom: 5px;">CAT SIMULATION 2026</h2>
+    <p style="color: #666; margin-bottom: 30px;">Persona Research & Consulting</p>
+    <input type="text" id="userName" placeholder="Masukkan Nama Lengkap" style="width:100%; padding: 15px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px;">
+    <button class="btn-action btn-next" style="width:100%" onclick="startQuiz()">MULAI UJIAN</button>
+</div>
+
+<div id="quiz-screen" style="display:none;">
+    <div class="header">
+        <h3 id="display-name" style="margin:0; letter-spacing: 1px;">UJIAN POTENSI KOGNITIF</h3>
+    </div>
+    <div class="container">
+        <div class="main-content">
+            <div id="q-area">
+                <div class="q-text" id="q-text"></div>
+                <div id="options-container"></div>
+            </div>
+            <div style="margin-top:40px; display:flex; justify-content:space-between; border-top: 1px solid #eee; padding-top: 25px;">
+                <button class="btn-action btn-prev" onclick="changeQuestion(-1)">SEBELUMNYA</button>
+                <button class="btn-action btn-next" id="next-label" onclick="changeQuestion(1)">SELANJUTNYA</button>
+            </div>
+        </div>
+        <div class="sidebar">
+            <div id="timer">90:00</div>
+            <div style="text-align:center; color:#888; font-size: 0.8rem; margin-bottom: 20px;">SISA WAKTU</div>
+            <hr>
+            <div style="font-weight:bold; margin: 15px 0 10px; color: var(--primary);">NAVIGASI NOMOR</div>
+            <div class="nav-grid" id="nav-grid"></div>
+            <button class="btn-action" style="width:100%; margin-top:30px; background:#d9534f; color:white;" onclick="finishQuiz()">SELESAI & KIRIM</button>
+        </div>
+    </div>
+</div>
+
+<div id="result-screen" style="display:none; max-width: 900px; margin: 40px auto; padding: 20px;">
+    <div class="main-content">
+        <h2 style="text-align:center; color: var(--primary);">LAPORAN HASIL UJIAN</h2>
+        <div id="final-score" style="font-size:5rem; text-align:center; color:var(--primary); font-weight:bold; margin: 20px 0;">0</div>
+        <div style="text-align:center; margin-bottom: 40px; color: #666;">Nilai Akhir Anda</div>
+        <hr>
+        <h3 style="margin-top:30px;">Review & Pembahasan Soal:</h3>
+        <div id="review-container"></div>
+        <button class="btn-action btn-next" style="display:block; margin:40px auto;" onclick="location.reload()">KEMBALI KE BERANDA</button>
+    </div>
+</div>
+
+<script>
+    const fullBank = [
+        // VERBAL & ANALOGI (1-25)
+        { q: "BONAFIDE = ...", o: ["Surat Berharga", "Dapat Dipercaya", "Catatan Sipil", "Sertifikat", "Keuntungan"], a: 1, h: "Bonafide berarti jujur, tulus, atau dapat dipercaya." },
+        { q: "REKOGNISI = ...", o: ["Pengembalian", "Pengakuan", "Pemeriksaan", "Penolakan", "Pemberian"], a: 1, h: "Rekognisi adalah pengakuan atau keadaan dikenal kembali." },
+        { q: "KOMPLEMENTER >< ...", o: ["Lengkap", "Tambahan", "Bertentangan", "Serupa", "Sejalan"], a: 2, h: "Komplementer bersifat melengkapi, lawannya bertentangan/tidak cocok." },
+        { q: "SEKULER >< ...", o: ["Duniawi", "Tradisional", "Keagamaan", "Modern", "Kuno"], a: 2, h: "Sekuler bersifat duniawi, lawannya adalah religius atau keagamaan." },
+        { q: "MATAHARI : TERIK = ... : ...", o: ["Lampu : Terang", "Es : Dingin", "Api : Panas", "Bulan : Malam", "Angin : Sejuk"], a: 2, h: "Sifat dominan: Matahari itu terik, Api itu panas." },
+        { q: "MENGUAP : PANAS = ... : ...", o: ["Mencair : Dingin", "Membeku : Dingin", "Hujan : Awan", "Angin : Kencang", "Haus : Lapar"], a: 1, h: "Hubungan sebab-akibat: Panas menyebabkan menguap, Dingin menyebabkan membeku." },
+        { q: "KENDARAAN : MOBIL = ... : ...", o: ["Hewan : Singa", "Buku : Baca", "Makan : Lapar", "Kayu : Kursi", "Laut : Kapal"], a: 0, h: "Hubungan kategori: Mobil adalah jenis kendaraan, Singa adalah jenis hewan." },
+        { q: "OVEN : ... = ... : FOTO", o: ["Kue : Kamera", "Panas : Album", "Dapur : Studio", "Roti : Bingkai", "Listrik : Kertas"], a: 0, h: "Oven menghasilkan kue, kamera menghasilkan foto." },
+        { q: "ABOLISI = ...", o: ["Pengurangan hukuman", "Pembatalan proses hukum", "Pemberian maaf", "Hukuman mati", "Sidang terbuka"], a: 1, h: "Abolisi adalah penghapusan proses hukum yang sedang berjalan." },
+        { q: "KALEIDOSKOP = ...", o: ["Teropong", "Berwarna-warni", "Penyajian berbagai peristiwa", "Kamera", "Lukisan"], a: 2, h: "Kaleidoskop adalah penyajian berbagai peristiwa yang telah terjadi." },
+        { q: "PROMINEN >< ...", o: ["Terkemuka", "Biasa", "Kecil", "Lemah", "Buruk"], a: 1, h: "Prominen berarti terkemuka/menonjol, lawannya adalah biasa/tidak dikenal." },
+        { q: "HIBRIDA = ...", o: ["Cepat", "Bibit unggul", "Hasil persilangan", "Langka", "Subur"], a: 2, h: "Hibrida adalah turunan dari persilangan dua jenis yang berbeda." },
+        { q: "ESKAPISME = ...", o: ["Petualangan", "Pelarian diri dari kenyataan", "Pendakian", "Perlindungan", "Pengasingan"], a: 1, h: "Eskapisme adalah kehendak menghindari kenyataan dengan hiburan/fantasi." },
+        { q: "EKSPLISIT >< ...", o: ["Terang", "Jelas", "Tersirat", "Terbuka", "Terurai"], a: 2, h: "Eksplisit berarti gamblang/jelas, lawannya Implisit (tersirat)." },
+        { q: "PADI : ... = ... : SUTRA", o: ["Beras : Ulat", "Sawah : Kepompong", "Karung : Benang", "Petani : Kain", "Nasi : Halus"], a: 0, h: "Padi diproses menjadi beras, ulat sutra diproses menjadi kain sutra." },
+        { q: "SEMEN : GEDUNG = ... : ...", o: ["Batu : Bata", "Benang : Kain", "Air : Haus", "Buku : Perpustakaan", "Cat : Kuas"], a: 1, h: "Bahan dasar: Gedung dibuat menggunakan semen, Kain dibuat menggunakan benang." },
+        { q: "AKURAT = ...", o: ["Saksama", "Cepat", "Baru", "Jelas", "Sederhana"], a: 0, h: "Akurat berarti teliti, cermat, atau saksama." },
+        { q: "INSOMNIA : ... = ... : MAKAN", o: ["Tidur : Lapar", "Mimpi : Haus", "Malam : Siang", "Lelah : Kenyang", "Sakit : Sehat"], a: 0, h: "Insomnia adalah gangguan tidur, lapar adalah keinginan untuk makan." },
+        { q: "TELEPON : KOMUNIKASI = ... : ...", o: ["Sepeda : Roda", "Mobil : Transportasi", "Koran : Tulisan", "Meja : Kayu", "Lampu : Listrik"], a: 1, h: "Hubungan fungsi: Telepon alat komunikasi, Mobil alat transportasi." },
+        { q: "Jika hari hujan, maka tanah basah. Tanah tidak basah. Maka...", o: ["Hari mendung", "Hari tidak hujan", "Tanah kering", "Hujan sedikit", "Tanah liat"], a: 1, h: "Modus Tollens: P->Q, ~Q maka ~P." },
+        { q: "Semua mahasiswa lulus ujian. Sebagian mahasiswa adalah atlet. Kesimpulan:", o: ["Semua atlet lulus ujian", "Sebagian atlet lulus ujian", "Atlet tidak kuliah", "Mahasiswa bukan atlet", "Hanya atlet yang lulus"], a: 1, h: "Penyimpulan dari premis umum dan khusus." },
+        { q: "Semua kayu adalah pohon. Sebagian pohon adalah bambu. Kesimpulan:", o: ["Bambu adalah kayu", "Sebagian bambu adalah pohon", "Kayu bukan bambu", "Kayu dan bambu berbeda", "Tidak dapat disimpulkan"], a: 4, h: "Tidak ada keterhubungan langsung antara kayu dan bambu di premis." },
+        { q: "A lebih tinggi dari B, C lebih rendah dari B. Maka...", o: ["A lebih rendah dari C", "C lebih tinggi dari A", "A paling tinggi", "B paling tinggi", "C paling tinggi"], a: 2, h: "A > B > C." },
+        { q: "Semua dokter adalah orang pintar. Sebagian dokter adalah penulis. Maka...", o: ["Penulis pasti dokter", "Sebagian orang pintar adalah penulis", "Dokter bukan penulis", "Orang pintar bukan penulis", "Semua penulis dokter"], a: 1, h: "Irisan antara dokter (orang pintar) dan penulis." },
+        { q: "Jika x = 2 dan y = 3, maka 2x + 3y adalah...", o: ["10", "12", "13", "15", "18"], a: 2, h: "2(2) + 3(3) = 4 + 9 = 13." },
+
+        // NUMERIK & DERET (26-50)
+        { q: "2, 4, 8, 16, ...", o: ["20", "24", "28", "32", "64"], a: 3, h: "Pola: dikali 2." },
+        { q: "100, 95, 85, 70, ...", o: ["60", "55", "50", "45", "40"], a: 2, h: "Pola: -5, -10, -15, maka -20." },
+        { q: "1, 1, 2, 3, 5, 8, ...", o: ["10", "11", "12", "13", "15"], a: 3, h: "Deret Fibonacci: 5+8=13." },
+        { q: "5, 7, 10, 14, 19, ...", o: ["24", "25", "26", "27", "28"], a: 1, h: "Pola: +2, +3, +4, +5, maka +6 = 25." },
+        { q: "Berapakah 25% dari 200?", o: ["40", "50", "60", "70", "80"], a: 1, h: "1/4 x 200 = 50." },
+        { q: "3, 9, 27, 81, ...", o: ["120", "162", "243", "324", "400"], a: 2, h: "Pola: dikali 3." },
+        { q: "12, 15, 18, 21, ...", o: ["22", "23", "24", "25", "26"], a: 2, h: "Pola: ditambah 3." },
+        { q: "Jika 15 pekerja selesai dalam 8 hari, berapa hari jika dilakukan 20 pekerja?", o: ["4 hari", "5 hari", "6 hari", "7 hari", "10 hari"], a: 2, h: "(15x8)/20 = 6 hari." },
+        { q: "Akar dari 625 adalah...", o: ["15", "20", "25", "30", "35"], a: 2, h: "25 x 25 = 625." },
+        { q: "Berapakah hasil dari 0,5 x 0,5?", o: ["2,5", "0,25", "0,025", "5,0", "0,5"], a: 1, h: "Perkalian desimal." },
+        { q: "4, 9, 16, 25, 36, ...", o: ["40", "45", "49", "54", "64"], a: 2, h: "Pola bilangan kuadrat: 7x7 = 49." },
+        { q: "Berapakah 33,33% dari 900?", o: ["200", "250", "300", "350", "400"], a: 2, h: "1/3 x 900 = 300." },
+        { q: "10, 12, 16, 22, 30, ...", o: ["38", "40", "42", "44", "46"], a: 1, h: "Pola: +2, +4, +6, +8, maka +10 = 40." },
+        { q: "Jika 3x + 5 = 20, maka x adalah...", o: ["3", "4", "5", "6", "7"], a: 2, h: "3x = 15, x = 5." },
+        { q: "Berapakah 1/2 + 1/4?", o: ["1/6", "2/6", "3/4", "1/8", "3/8"], a: 2, h: "2/4 + 1/4 = 3/4." },
+        { q: "80, 40, 20, 10, ...", o: ["8", "5", "4", "2", "0"], a: 1, h: "Pola: dibagi 2." },
+        { q: "Jika harga 5 buku adalah 15.000, berapa harga 8 buku?", o: ["20.000", "24.000", "25.000", "28.000", "30.000"], a: 1, h: "(15.000/5) x 8 = 24.000." },
+        { q: "1, 4, 9, 16, ... (deret ke-6)", o: ["25", "36", "49", "64", "81"], a: 1, h: "6x6 = 36." },
+        { q: "Sebuah baju diskon 20% menjadi 80.000. Harga awalnya?", o: ["90.000", "100.000", "110.000", "120.000", "150.000"], a: 1, h: "80.000 / 0.8 = 100.000." },
+        { q: "Berapakah 10% dari 10% dari 100?", o: ["10", "1", "0,1", "0,01", "100"], a: 1, h: "10% dari 100 = 10. 10% dari 10 = 1." },
+        { q: "50, 48, 44, 38, ...", o: ["30", "32", "34", "36", "28"], a: 0, h: "Pola: -2, -4, -6, maka -8 = 30." },
+        { q: "121, 144, 169, 196, ...", o: ["215", "225", "235", "245", "255"], a: 1, h: "Deret kuadrat: 11, 12, 13, 14, maka 15x15 = 225." },
+        { q: "Berapakah rata-rata dari 10, 20, 30?", o: ["15", "20", "25", "30", "60"], a: 1, h: "(10+20+30)/3 = 20." },
+        { q: "Jika x/2 = 10, maka x - 5 adalah...", o: ["10", "15", "20", "25", "30"], a: 1, h: "x=20, 20-5=15." },
+        { q: "7, 14, 28, 56, ...", o: ["100", "112", "124", "136", "150"], a: 1, h: "Pola: dikali 2." },
+
+        // WAWASAN UMUM & MANAJERIAL (51-100)
+        { q: "Ibukota negara Australia adalah...", o: ["Sydney", "Melbourne", "Canberra", "Perth", "Brisbane"], a: 2, h: "Canberra adalah ibukota Australia." },
+        { q: "Lembaga yang mengawasi peredaran uang di Indonesia adalah...", o: ["OJK", "Bank Indonesia", "Kemenkeu", "LPS", "BPK"], a: 1, h: "Bank Indonesia adalah bank sentral." },
+        { q: "Kepanjangan dari BUMN adalah...", o: ["Badan Umum Milik Negara", "Badan Usaha Milik Negara", "Bank Usaha Milik Negara", "Badan Utama Milik Negara", "Bursa Usaha Milik Negara"], a: 1, h: "Sudah jelas." },
+        { q: "Pajak Pertambahan Nilai (PPN) saat ini adalah...", o: ["5%", "10%", "11%", "12%", "15%"], a: 2, h: "PPN naik menjadi 11% sejak 2022." },
+        { q: "Dasar negara Indonesia adalah...", o: ["UUD 1945", "Pancasila", "Proklamasi", "Bhinneka Tunggal Ika", "GBHN"], a: 1, h: "Sudah jelas." },
+        { q: "Siapakah Bapak Koperasi Indonesia?", o: ["Soekarno", "Moh. Hatta", "Ki Hajar Dewantara", "Adam Malik", "Sutan Syahrir"], a: 1, h: "Mohammad Hatta." },
+        { q: "G20 adalah forum yang terdiri dari...", o: ["19 negara + 1 Uni Eropa", "20 negara", "18 negara + 2 organisasi", "20 organisasi", "10 negara maju"], a: 0, h: "Sesuai struktur resmi G20." },
+        { q: "Mata uang Thailand adalah...", o: ["Ringgit", "Peso", "Baht", "Rupiah", "Dong"], a: 2, h: "Baht." },
+        { q: "Benua terkecil di dunia adalah...", o: ["Eropa", "Asia", "Afrika", "Australia", "Antartika"], a: 3, h: "Australia." },
+        { q: "Lembaga yang memeriksa keuangan negara adalah...", o: ["KPK", "BPK", "MK", "MA", "DPR"], a: 1, h: "Badan Pemeriksa Keuangan." },
+        { q: "Zat hijau daun disebut...", o: ["Stomata", "Klorofil", "Fotosintesis", "Epidermis", "Kambium"], a: 1, h: "Klorofil." },
+        { q: "Penemu lampu pijar adalah...", o: ["Einstein", "Newton", "Thomas Alva Edison", "Tesla", "Watt"], a: 2, h: "Sudah jelas." },
+        { q: "Planet terdekat dari Matahari adalah...", o: ["Venus", "Bumi", "Mars", "Merkurius", "Yupiter"], a: 3, h: "Merkurius." },
+        { q: "Lagu Indonesia Raya diciptakan oleh...", o: ["Ismail Marzuki", "W.R. Supratman", "Kusbini", "C. Simanjuntak", "Ibu Sud"], a: 1, h: "Wage Rudolf Supratman." },
+        { q: "ASEAN didirikan pada tahun...", o: ["1945", "1967", "1975", "1988", "1990"], a: 1, h: "8 Agustus 1967." },
+        { q: "Sila ke-3 Pancasila berbunyi...", o: ["Keadilan Sosial", "Persatuan Indonesia", "Kemanusiaan yang adil", "Ketuhanan yang maha esa", "Kerakyatan yang dipimpin"], a: 1, h: "Sudah jelas." },
+        { q: "Mata uang Jepang adalah...", o: ["Yuan", "Won", "Yen", "Dollar", "Euro"], a: 2, h: "Yen." },
+        { q: "Gunung tertinggi di dunia adalah...", o: ["Semeru", "Fuji", "Everest", "Kilimanjaro", "Jaya Wijaya"], a: 2, h: "Mount Everest." },
+        { q: "Vitamin yang membantu pembekuan darah adalah...", o: ["Vit A", "Vit B", "Vit C", "Vit D", "Vit K"], a: 4, h: "Vitamin K." },
+        { q: "Negara kincir angin adalah julukan untuk...", o: ["Jerman", "Inggris", "Belanda", "Prancis", "Swiss"], a: 2, h: "Belanda." },
+        { q: "Dalam SWOT, 'W' adalah...", o: ["Wait", "Weakness", "Work", "Wealth", "Wide"], a: 1, h: "Sudah jelas." },
+        { q: "Pemimpin dalam perusahaan disebut...", o: ["Staf", "Manajer/CEO", "Buruh", "Klien", "Vendor"], a: 1, h: "Sudah jelas." },
+        { q: "Ibukota Jawa Barat adalah...", o: ["Jakarta", "Surabaya", "Bandung", "Semarang", "Medan"], a: 2, h: "Sudah jelas." },
+        { q: "Borobudur terletak di provinsi...", o: ["Jawa Barat", "Jawa Timur", "Jawa Tengah", "Yogyakarta", "Bali"], a: 2, h: "Sudah jelas." },
+        { q: "Alat pengukur gempa disebut...", o: ["Termometer", "Barometer", "Seismograf", "Anemometer", "Mikroskop"], a: 2, h: "Seismograf." },
+        { q: "Samudra terluas di dunia adalah...", o: ["Hindia", "Atlantik", "Pasifik", "Arktik", "Antartika"], a: 2, h: "Pasifik." },
+        { q: "Presiden pertama Indonesia adalah...", o: ["Soeharto", "Habibie", "Soekarno", "Gus Dur", "Megawati"], a: 2, h: "Sudah jelas." },
+        { q: "Garis khatulistiwa melewati kota...", o: ["Jakarta", "Pontianak", "Surabaya", "Medan", "Makassar"], a: 1, h: "Pontianak." },
+        { q: "Simbol kimia untuk air adalah...", o: ["CO2", "O2", "H2O", "NaCl", "H2SO4"], a: 2, h: "H2O." },
+        { q: "Ikan bernapas dengan...", o: ["Paru-paru", "Insang", "Kulit", "Trakea", "Hidung"], a: 1, h: "Insang." },
+        { q: "Bhinneka Tunggal Ika artinya...", o: ["Sama saja", "Berbeda-beda tetap satu", "Satu untuk semua", "Maju terus", "Pantang menyerah"], a: 1, h: "Sudah jelas." },
+        { q: "Kota Pahlawan adalah...", o: ["Jakarta", "Bandung", "Surabaya", "Semarang", "Yogyakarta"], a: 2, h: "Surabaya." },
+        { q: "Penemu telepon adalah...", o: ["Edison", "Graham Bell", "Watt", "Tesla", "Marconi"], a: 1, h: "Alexander Graham Bell." },
+        { q: "Warna bendera Indonesia adalah...", o: ["Merah Putih", "Putih Merah", "Merah Kuning", "Biru Putih", "Hijau Putih"], a: 0, h: "Sudah jelas." },
+        { q: "Pulau terbesar di Indonesia adalah...", o: ["Jawa", "Sumatra", "Kalimantan", "Sulawesi", "Papua"], a: 4, h: "Papua (Secara wilayah kedaulatan RI)." },
+        { q: "Satu jam terdiri dari berapa detik?", o: ["60", "360", "600", "3600", "6000"], a: 3, h: "60x60." },
+        { q: "Suku asli Jakarta adalah...", o: ["Sunda", "Jawa", "Betawi", "Batak", "Dayak"], a: 2, h: "Sudah jelas." },
+        { q: "Hari Kemerdekaan RI tanggal...", o: ["10 Nov", "17 Agt", "1 Jun", "21 Apr", "28 Okt"], a: 1, h: "Sudah jelas." },
+        { q: "Mamalia laut terbesar adalah...", o: ["Hiu", "Paus Biru", "Lumba-lumba", "Anjing Laut", "Dugong"], a: 1, h: "Paus Biru." },
+        { q: "Benua Hitam adalah julukan...", o: ["Asia", "Eropa", "Afrika", "Amerika", "Australia"], a: 2, h: "Afrika." },
+        { q: "Matahari terbit dari sebelah...", o: ["Barat", "Timur", "Utara", "Selatan", "Tengah"], a: 1, h: "Timur." },
+        { q: "KPK singkatan dari...", o: ["Komisi Pemberantasan Korupsi", "Komisi Pemilihan Kami", "Kantor Pajak Kecil", "Kumpulan Penulis Kecil", "Komisi Pemuda Kita"], a: 0, h: "Sudah jelas." },
+        { q: "Pancasila terdiri dari berapa sila?", o: ["3", "4", "5", "6", "7"], a: 2, h: "Sudah jelas." },
+        { q: "Alat musik angklung berasal dari...", o: ["Jawa Tengah", "Jawa Timur", "Jawa Barat", "Bali", "Papua"], a: 2, h: "Jawa Barat." },
+        { q: "Simbol negara Indonesia adalah burung...", o: ["Elang", "Cendrawasih", "Garuda", "Merpati", "Kakatua"], a: 2, h: "Garuda." },
+        { q: "Warna primer adalah...", o: ["Hijau Kuning", "Merah Kuning Biru", "Ungu Oranye", "Hitam Putih", "Cokelat Abu"], a: 1, h: "Sudah jelas." },
+        { q: "Lautan yang sangat luas disebut...", o: ["Danau", "Sungai", "Rawa", "Samudra", "Teluk"], a: 3, h: "Sudah jelas." },
+        { q: "Tari Kecak berasal dari...", o: ["Aceh", "Padang", "Bali", "Lombok", "Manado"], a: 2, h: "Bali." },
+        { q: "Rumah adat Sumatera Barat adalah...", o: ["Joglo", "Gadang", "Honai", "Limas", "Panggung"], a: 1, h: "Rumah Gadang." },
+        { q: "Presiden RI saat ini (2026) adalah...", o: ["Jokowi", "Prabowo Subianto", "Anies", "Ganjar", "Gibran"], a: 1, h: "Sesuai masa jabatan 2024-2029." }
+    ];
+
+    let currentIdx = 0;
+    let userAnswers = {};
+    let timeLeft = 5400; // 90 Menit
+    let timerId;
+    let quizData = [];
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startQuiz() {
+        const name = document.getElementById('userName').value;
+        if(!name) return alert("Masukkan Nama Lengkap!");
+        
+        quizData = shuffle([...fullBank]);
+        document.getElementById('display-name').innerText = name.toUpperCase() + " - CAT SESSION";
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        
+        showQuestion();
+        renderNav();
+        startTimer();
+    }
+
+    function showQuestion() {
+        const data = quizData[currentIdx];
+        document.getElementById('q-text').innerText = `${currentIdx + 1}. ${data.q}`;
+        
+        let html = "";
+        data.o.forEach((opt, i) => {
+            const isSelected = userAnswers[currentIdx] === i ? 'selected' : '';
+            html += `<div class="option ${isSelected}" onclick="selectOption(${i})">
+                <b style="margin-right:15px">${String.fromCharCode(65+i)}.</b> ${opt}
+            </div>`;
+        });
+        document.getElementById('options-container').innerHTML = html;
+        document.getElementById('next-label').innerText = currentIdx === 99 ? "FINISH" : "SELANJUTNYA";
+        renderNav();
+    }
+
+    function selectOption(optIdx) {
+        userAnswers[currentIdx] = optIdx;
+        showQuestion();
+        // AUTO NEXT
+        setTimeout(() => { if(currentIdx < 99) changeQuestion(1); }, 400);
+    }
+
+    function changeQuestion(dir) {
+        currentIdx += dir;
+        if(currentIdx < 0) currentIdx = 0;
+        if(currentIdx > 99) { currentIdx = 99; return; }
+        showQuestion();
+    }
+
+    function renderNav() {
+        let html = "";
+        for(let i=0; i<100; i++) {
+            let cls = "nav-btn";
+            if(i === currentIdx) cls += " active";
+            if(userAnswers[i] !== undefined) cls += " filled";
+            html += `<div class="${cls}" onclick="jumpTo(${i})">${i+1}</div>`;
+        }
+        document.getElementById('nav-grid').innerHTML = html;
+    }
+
+    function jumpTo(i) { currentIdx = i; showQuestion(); }
+
+    function startTimer() {
+        timerId = setInterval(() => {
+            timeLeft--;
+            let min = Math.floor(timeLeft / 60);
+            let sec = timeLeft % 60;
+            document.getElementById('timer').innerText = `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+            if(timeLeft <= 0) { clearInterval(timerId); finishQuiz(); }
+        }, 1000);
+    }
+
+    function finishQuiz() {
+        if(timeLeft > 0) {
+            if(!confirm("Anda yakin ingin mengakhiri ujian sekarang?")) return;
+        }
+        clearInterval(timerId);
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        let score = 0;
+        let reviewHtml = "";
+        quizData.forEach((d, i) => {
+            const isCorrect = userAnswers[i] === d.a;
+            if(isCorrect) score++;
+            reviewHtml += `
+                <div style="margin-bottom:30px; border-bottom:2px solid #eee; padding-bottom:15px;">
+                    <p><b>SOAL ${i+1}:</b> ${d.q}</p>
+                    <p style="color:${isCorrect ? '#27ae60' : '#d9534f'}; font-weight:bold;">
+                        Jawaban Anda: ${userAnswers[i] !== undefined ? String.fromCharCode(65+userAnswers[i]) : 'TIDAK DIJAWAB'} 
+                        ${isCorrect ? '(BENAR)' : '(SALAH)'}
+                    </p>
+                    <p style="color:#2980b9"><b>Kunci Jawaban: ${String.fromCharCode(65+d.a)}</b></p>
+                    <div class="teach-box"><b>Pembahasan:</b> ${d.h}</div>
+                </div>
+            `;
+        });
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('review-container').innerHTML = reviewHtml;
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>

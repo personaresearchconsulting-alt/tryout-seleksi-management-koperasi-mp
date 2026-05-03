@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal CAT — Persona Research & Consulting</title>
+    <style>
+        :root { 
+            --primary: #1a1a2e; /* Midnight Navy */
+            --accent: #c5a059;  /* Gold */
+            --bg: #f8f7f2; 
+            --text: #1a1a2e; 
+            --gold-light: #d4af37;
+        }
+
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; margin: 0; padding: 0; }
+        
+        body { 
+            background: var(--bg); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            color: var(--text); 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container { 
+            max-width: 600px; 
+            margin: auto; 
+            background: #fff; 
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
+            border-top: 10px solid var(--accent);
+            text-align: center;
+        }
+
+        .logo-box {
+            background: #000;
+            color: #fff;
+            width: 70px;
+            height: 70px;
+            line-height: 70px;
+            border-radius: 15px;
+            margin: 0 auto 20px;
+            font-weight: bold;
+            font-size: 28px;
+            border: 2px solid var(--accent);
+        }
+
+        h1 { font-size: 22px; letter-spacing: 2px; color: var(--primary); margin-bottom: 5px; }
+        .subtitle { color: var(--gold-light); font-weight: bold; font-size: 14px; margin-bottom: 30px; text-transform: uppercase; }
+
+        .menu-grid { display: grid; gap: 15px; margin-top: 20px; }
+
+        .menu-item {
+            padding: 15px;
+            background: #fff;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: bold;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-item:hover {
+            border-color: var(--accent);
+            background: #fffdf0;
+            transform: translateY(-2px);
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .btn-lock {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .exp-tag {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #999;
+        }
+
+        footer { padding: 20px; text-align: center; font-size: 12px; color: #777; }
+        
+        #main-menu { display: none; }
+    </style>
+</head>
+<body oncontextmenu="return false;" onkeydown="return false;">
+
+<div class="container">
+    <div class="logo-box">PRC</div>
+    
+    <!-- Screen 1: Login -->
+    <div id="login-screen">
+        <h1>ACCESS RESTRICTED</h1>
+        <p class="subtitle">Persona Research & Consulting</p>
+        <input type="password" id="passInput" placeholder="Masukkan Password Akses">
+        <button class="btn-lock" onclick="checkAccess()">UNLOCK MENU</button>
+    </div>
+
+    <!-- Screen 2: Menu Utama -->
+    <div id="main-menu">
+        <h1>DAFTAR SIMULASI CAT</h1>
+        <p class="subtitle">Silakan Pilih Modul Ujian</p>
+        
+        <div class="menu-grid">
+            <a href="quiz1.html" class="menu-item">01. SIMULASI CAT PRESTASI</a>
+            <a href="quiz2.html" class="menu-item">02. TES KECERDASAN 3</a>
+            <a href="quiz3.html" class="menu-item">03. TES KECERDASAN 3 (HOTS)</a>
+            <a href="quiz4.html" class="menu-item">04. CAT PREMIUM 2026</a>
+        </div>
+
+        <p class="exp-tag">Akses berlaku hingga: 14 Mei 2026</p>
+    </div>
+</div>
+
+<footer>
+    &copy; 2026 Persona Research & Consulting
+</footer>
+
+<script>
+    // Konfigurasi Keamanan
+    const ACCESS_KEY = "persona05";
+    const EXPIRY_DATE = new Date("2026-05-14T23:59:59");
+
+    function checkAccess() {
+        const now = new Date();
+        const input = document.getElementById('passInput').value;
+
+        // Cek Kedaluwarsa
+        if (now > EXPIRY_DATE) {
+            alert("Maaf, masa berlaku link ini telah berakhir (14 Mei 2026).");
+            return;
+        }
+
+        // Cek Password
+        if (input === ACCESS_KEY) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'block';
+        } else {
+            alert("Password Salah!");
+        }
+    }
+
+    // Proteksi Tambahan: Anti F12 & Inspeksi
+    document.onkeydown = function(e) {
+        if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
+    };
+</script>
+
+</body>
+</html>

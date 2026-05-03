@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDKMP - Tes Manajemen Koperasi</title>
+    <style>
+        :root { --primary: #002366; --gold: #c5a059; --bg: #f5f7fa; --text: #2d3436; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--bg); color: var(--text); -webkit-user-select: none; user-select: none; }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .login-screen { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .test-container { display: none; max-width: 1200px; margin: 20px auto; padding: 20px; display: flex; gap: 25px; }
+        .question-area { flex: 3; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 500px; }
+        .sidebar { flex: 1; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
+        .q-text { font-size: 18px; font-weight: 600; margin-bottom: 30px; line-height: 1.6; text-align: justify; }
+        .opt-card { padding: 18px; border: 2px solid #f1f2f6; border-radius: 10px; cursor: pointer; margin-bottom: 12px; transition: 0.3s; display: flex; align-items: center; }
+        .opt-card:hover { border-color: var(--primary); background: #f8faff; }
+        .opt-card.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 20px; }
+        .nav-btn { padding: 10px; border: 1px solid #dfe4ea; text-align: center; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .nav-btn.filled { background: var(--primary); color: white; }
+        .nav-btn.current { border: 2px solid var(--gold); }
+        #timer { font-size: 32px; font-weight: bold; color: #d63031; text-align: center; margin-bottom: 20px; }
+        .result-screen { display: none; max-width: 900px; margin: 40px auto; background: white; padding: 50px; border-radius: 20px; }
+        .discussion { background: #fdf9f0; border-left: 6px solid var(--gold); padding: 20px; margin-bottom: 25px; border-radius: 8px; font-size: 14px; }
+        .btn { padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn-primary { background: var(--primary); color: white; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="screen-login">
+    <div class="login-screen">
+        <div style="background:var(--primary); color:var(--gold); padding:15px; border-radius:10px; margin-bottom:20px; font-weight:bold; font-size:24px;">PRC</div>
+        <h3>TES MANAJEMEN KOPERASI (KDKMP)</h3>
+        <p style="font-size:14px; color:#636e72;">Assessment: Koperasi Strategy & Governance<br>20 Soal | Benar +5 | Salah 0</p>
+        <input type="text" id="pName" placeholder="Nama Lengkap Peserta" style="width:100%; padding:15px; margin:20px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
+        <button class="btn btn-primary" style="width:100%" onclick="initTest()">Mulai Ujian</button>
+        <p style="font-size:10px; margin-top:20px; color:#b2bec3;">Persona Research & Consulting | WA: 0877 4251 5786</p>
+    </div>
+</div>
+
+<div id="screen-test" style="display:none;">
+    <div class="header">
+        <h2 style="margin:0">SIMULASI KDKMP - 20 SOAL</h2>
+    </div>
+    <div class="test-container">
+        <div class="question-area">
+            <div id="qText" class="q-text"></div>
+            <div id="qOpts"></div>
+            <div style="margin-top:40px; display:flex; justify-content: space-between;">
+                <button class="btn" style="background:#b2bec3" onclick="navigate(-1)">Sebelumnya</button>
+                <button class="btn btn-primary" id="btnNext" onclick="navigate(1)">Lanjut</button>
+            </div>
+        </div>
+        <div class="sidebar">
+            <div id="timer">40:00</div>
+            <div class="nav-grid" id="navGrid"></div>
+        </div>
+    </div>
+</div>
+
+<div id="screen-result" class="result-screen">
+    <h1 style="text-align:center; color:var(--primary)">SCORE REPORT</h1>
+    <div id="finalScore" style="font-size:90px; text-align:center; font-weight:bold; color:var(--gold); margin:20px 0;">0</div>
+    <div id="pDetails" style="text-align:center; margin-bottom:40px; font-weight:bold;"></div>
+    <hr>
+    <div id="reviewBox"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="location.reload()">Selesai & Logout</button>
+</div>
+
+<script>
+    const EXPIRE = new Date("2026-07-01");
+    if (new Date() > EXPIRE) document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;'>Link Akses Kadaluwarsa.</h1>";
+
+    let currentIdx = 0, userAns = {}, timer = 2400; // 40 Menit
+
+    const db = [
+        { q: "Dalam prinsip koperasi, pembagian Sisa Hasil Usaha (SHU) dilakukan secara adil. Dasar utama pembagian SHU kepada anggota adalah...", o: ["Besarnya jasa usaha masing-masing anggota", "Besarnya modal/simpanan yang disetorkan", "Tingkat kehadiran dalam rapat anggota", "Lama waktu menjadi anggota koperasi", "Jabatan anggota dalam struktur organisasi"], c: "Besarnya jasa usaha masing-masing anggota", h: "Prinsip koperasi menekankan SHU dibagi berdasarkan kontribusi partisipasi ekonomi (jasa usaha), bukan sekadar modal." },
+        { q: "Koperasi mengalami kerugian operasional akibat penurunan omzet unit usaha retail. Berdasarkan tata kelola koperasi, pihak yang paling berwenang menetapkan langkah penyelamatan atau pembubaran adalah...", o: ["Rapat Anggota", "Pengurus Koperasi", "Pengawas Koperasi", "Dinas Koperasi Setempat", "Manajer Profesional"], c: "Rapat Anggota", h: "Rapat Anggota adalah pemegang kekuasaan tertinggi dalam koperasi untuk mengambil keputusan strategis." },
+        { q: "Seorang manajer koperasi ingin meningkatkan likuiditas tanpa harus menambah pinjaman bank. Strategi pengelolaan keuangan yang paling tepat adalah...", o: ["Mengoptimalisasi penagihan piutang anggota yang tertunggak", "Menurunkan bunga simpanan anggota secara sepihak", "Menjual aset tetap koperasi seperti gedung kantor", "Membatalkan pembagian SHU tahun berjalan tanpa rapat", "Menaikkan harga barang di toko koperasi di atas harga pasar"], c: "Mengoptimalisasi penagihan piutang anggota yang tertunggak", h: "Optimalisasi piutang meningkatkan arus kas masuk (cash flow) tanpa menambah beban liabilitas eksternal." },
+        { q: "Prinsip 'Kemandirian' dalam koperasi berarti koperasi harus mampu...", o: ["Berdiri sendiri tanpa bergantung pada pihak lain dalam pengambilan keputusan", "Menolak seluruh bantuan dana hibah dari pemerintah", "Hanya melayani anggota dan dilarang melayani non-anggota", "Memproduksi seluruh kebutuhan barang secara internal", "Tidak memerlukan pengawas dari luar struktur koperasi"], c: "Berdiri sendiri tanpa bergantung pada pihak lain dalam pengambilan keputusan", h: "Kemandirian berarti otonomi dalam pengelolaan dan pengambilan keputusan organisasi." },
+        { q: "Dalam pengelolaan usaha koperasi, pengurus memutuskan untuk melakukan ekspansi ke bidang industri pengolahan. Risiko apa yang paling krusial harus diantisipasi oleh Pengawas?", o: ["Ketidaksesuaian kompetensi SDM pengelola dengan teknologi baru", "Jumlah anggota koperasi yang terlalu banyak", "Warna logo koperasi yang tidak sesuai dengan bidang industri", "Lokasi kantor pusat yang terlalu dekat dengan pemukiman", "Kenaikan jumlah simpanan sukarela dari anggota"], c: "Ketidaksesuaian kompetensi SDM pengelola dengan teknologi baru", h: "Ekspansi ke industri baru membutuhkan keahlian teknis; gap kompetensi adalah risiko operasional terbesar." },
+        { q: "Koperasi primer dapat membentuk koperasi sekunder. Syarat minimal pembentukan koperasi sekunder menurut UU Koperasi adalah beranggotakan minimal...", o: ["3 Koperasi yang telah berbadan hukum", "20 Orang individu secara langsung", "5 Koperasi dari wilayah yang sama", "10 Koperasi simpan pinjam", "1 Koperasi Pusat dan 1 Koperasi Wilayah"], c: "3 Koperasi yang telah berbadan hukum", h: "Koperasi sekunder didirikan oleh paling sedikit 3 koperasi primer yang berbadan hukum." },
+        { q: "Pelayanan anggota yang unggul dalam koperasi simpan pinjam ditunjukkan dengan...", o: ["Prosedur pinjaman yang transparan dan bunga yang kompetitif", "Memberikan pinjaman tanpa batas kepada siapa saja", "Menyediakan hadiah mewah bagi peminjam terbesar", "Menghapuskan kewajiban membayar simpanan wajib", "Hanya memberikan pinjaman kepada pengurus saja"], c: "Prosedur pinjaman yang transparan dan bunga yang kompetitif", h: "Transparansi dan daya saing bunga adalah bentuk layanan anggota yang sesuai prinsip ekonomi kerakyatan." },
+        { q: "Analisis laporan keuangan koperasi menunjukkan 'Solvabilitas' yang rendah. Hal ini berarti koperasi tersebut...", o: ["Memiliki risiko tidak mampu melunasi seluruh hutangnya jika dibubarkan", "Memiliki terlalu banyak uang tunai yang menganggur di kas", "Gagal membagikan SHU dalam dua tahun terakhir", "Tidak memiliki cukup anggota untuk menjalankan usaha", "Memiliki omzet penjualan yang terlalu tinggi setiap bulan"], c: "Memiliki risiko tidak mampu melunasi seluruh hutangnya jika dibubarkan", h: "Solvabilitas mengukur kemampuan organisasi memenuhi kewajiban jangka panjangnya." },
+        { q: "Pengawas koperasi menemukan indikasi penyimpangan dana oleh pengurus. Langkah hukum dan organisatoris pertama yang harus dilakukan adalah...", o: ["Melaporkan temuan pada Rapat Anggota Luar Biasa", "Langsung memecat pengurus tanpa prosedur rapat", "Menutup kantor koperasi agar tidak ada yang masuk", "Membagikan dana sisa ke seluruh anggota secara diam-diam", "Meminta manajer untuk menutupi laporan tersebut"], c: "Melaporkan temuan pada Rapat Anggota Luar Biasa", h: "Penyimpangan strategis harus diselesaikan melalui forum kekuasaan tertinggi untuk tindakan lebih lanjut." },
+        { q: "Modal sendiri koperasi terdiri dari beberapa unsur. Yang termasuk modal sendiri yang bersifat permanen dan tidak dapat diambil selama menjadi anggota adalah...", o: ["Simpanan Pokok dan Simpanan Wajib", "Simpanan Sukarela dan Deposito", "Pinjaman dari Bank dan Obligasi", "Hibah dan Modal Penyertaan Pihak Luar", "SHU yang belum dibagi tahun berjalan"], c: "Simpanan Pokok dan Simpanan Wajib", h: "Simpanan pokok dan wajib adalah modal dasar yang mengikat selama masa keanggotaan." },
+        { q: "Strategi pemasaran koperasi produsen untuk menembus pasar ekspor harus memprioritaskan...", o: ["Standardisasi mutu produk dan sertifikasi berkelanjutan", "Iklan besar-besaran di media televisi lokal", "Penggunaan kemasan yang paling murah tanpa label", "Menunggu pembeli datang sendiri ke lokasi koperasi", "Menjual produk di bawah biaya produksi agar cepat laku"], c: "Standardisasi mutu produk dan sertifikasi berkelanjutan", h: "Pasar internasional sangat mengutamakan standar kualitas dan legalitas produk." },
+        { q: "Koperasi merupakan badan usaha yang berwatak sosial. Namun secara manajerial, koperasi harus tetap 'profitable' karena...", o: ["Keuntungan digunakan untuk membiayai pengembangan dan kesejahteraan anggota", "Agar pengurus bisa mendapatkan gaji yang setara dengan CEO bank", "Untuk membayar pajak perusahaan yang lebih besar kepada negara", "Agar koperasi bisa membeli saham perusahaan kompetitor", "Untuk membuktikan bahwa koperasi lebih hebat dari PT"], c: "Keuntungan digunakan untuk membiayai pengembangan dan kesejahteraan anggota", h: "Profit/SHU diperlukan untuk keberlanjutan organisasi dan pemenuhan kebutuhan anggota." },
+        { q: "Salah satu fungsi kelembagaan koperasi adalah pendidikan bagi anggota. Tujuan utama pendidikan ini adalah...", o: ["Meningkatkan kesadaran berkoperasi dan partisipasi ekonomi anggota", "Mengajari anggota cara mencari pinjaman di tempat lain", "Memberikan gelar akademik kepada seluruh anggota koperasi", "Memastikan anggota tunduk sepenuhnya pada perintah pengurus", "Mengurangi jumlah partisipasi anggota dalam rapat"], c: "Meningkatkan kesadaran berkoperasi dan partisipasi ekonomi anggota", h: "Pendidikan anggota kunci bagi kemajuan koperasi melalui partisipasi yang aktif dan cerdas." },
+        { q: "Dalam struktur organisasi koperasi, posisi Manajer bertanggung jawab langsung kepada...", o: ["Pengurus", "Rapat Anggota", "Pengawas", "Dinas Koperasi", "Anggota secara individu"], c: "Pengurus", h: "Manajer adalah pengelola operasional yang diangkat dan bertanggung jawab kepada Pengurus." },
+        { q: "Jika koperasi ingin melakukan penggabungan (merger) dengan koperasi lain, hal utama yang harus diselaraskan adalah...", o: ["Visi misi dan nilai-nilai dasar kedua koperasi", "Warna seragam seluruh staf dan karyawan", "Merk kendaraan operasional yang digunakan", "Jumlah kursi di ruang rapat anggota", "Jenis font yang digunakan dalam surat resmi"], c: "Visi misi dan nilai-nilai dasar kedua koperasi", h: "Merger badan usaha koperasi harus berawal dari keselarasan tujuan dan jati diri organisasi." },
+        { q: "Manajemen risiko dalam unit simpan pinjam dilakukan dengan menerapkan prinsip 5C saat analisis kredit. 'Capacity' dalam hal ini berarti...", o: ["Kemampuan anggota untuk menghasilkan pendapatan guna membayar cicilan", "Kekayaan aset yang dimiliki anggota sebagai jaminan", "Watak atau kejujuran anggota dalam memenuhi janji", "Kondisi ekonomi makro yang mempengaruhi usaha anggota", "Besarnya modal yang disetor anggota ke koperasi"], c: "Kemampuan anggota untuk menghasilkan pendapatan guna membayar cicilan", h: "Capacity mengacu pada kemampuan finansial/arus kas untuk membayar kembali kewajiban." },
+        { q: "Tata kelola koperasi yang baik (Good Corporate Governance) mencakup aspek 'Accountability', yaitu...", o: ["Kejelasan fungsi, struktur, dan pertanggungjawaban organ koperasi", "Keinginan untuk selalu mendapatkan bantuan dari pemerintah", "Menutup informasi laporan keuangan agar tidak disalahgunakan", "Memberikan hak suara berdasarkan besarnya simpanan", "Membatasi masa jabatan pengurus hanya selama satu tahun"], c: "Kejelasan fungsi, struktur, dan pertanggungjawaban organ koperasi", h: "Akuntabilitas berarti setiap tindakan organ koperasi dapat dipertanggungjawabkan sesuai fungsinya." },
+        { q: "Koperasi jasa transportasi mengalami penurunan jumlah penumpang akibat kompetisi aplikasi digital. Strategi adaptasi kelembagaan yang paling tepat adalah...", o: ["Melakukan transformasi digital pada sistem pemesanan dan layanan", "Meminta pemerintah melarang seluruh aplikasi transportasi lain", "Menaikkan tarif jasa agar pendapatan per penumpang meningkat", "Menjual seluruh armada dan membagikan uangnya ke anggota", "Berhenti beroperasi sementara sampai kompetisi mereda"], c: "Melakukan transformasi digital pada sistem pemesanan dan layanan", h: "Inovasi teknologi adalah cara paling berkelanjutan untuk menghadapi disrupsi pasar." },
+        { q: "Peran utama anggota sebagai 'Pemilik' sekaligus 'Pengguna' jasa koperasi disebut dengan istilah...", o: ["Identitas Ganda (Dual Identity)", "Kemitraan Strategis", "Pemegang Saham Mayoritas", "Nasabah Prioritas", "Karyawan Internal"], c: "Identitas Ganda (Dual Identity)", h: "Anggota adalah pemilik (yang memodali) dan pengguna (yang memanfaatkan layanan) koperasi." },
+        { q: "Dana cadangan koperasi yang disisihkan dari SHU bertujuan untuk...", o: ["Menutup kerugian dan memupuk modal sendiri", "Memberikan bonus tambahan bagi pengurus yang rajin", "Membayar biaya rekreasi tahunan anggota koperasi", "Dipinjamkan kembali kepada anggota dengan bunga nol persen", "Membeli tanah di luar wilayah operasional koperasi"], c: "Menutup kerugian dan memupuk modal sendiri", h: "Dana cadangan adalah bantalan finansial untuk stabilitas dan pertumbuhan koperasi." }
+    ];
+
+    function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+    const questions = db.map(d => {
+        const opts = shuffle([...d.o]);
+        return { ...d, o: opts };
+    });
+
+    function initTest() {
+        if(!document.getElementById('pName').value) return alert("Nama Wajib Diisi!");
+        document.getElementById('screen-login').style.display = 'none';
+        document.getElementById('screen-test').style.display = 'block';
+        renderQ();
+        setInterval(() => {
+            timer--;
+            let m = Math.floor(timer/60), s = timer%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+            if(timer <= 0) autoFinish();
+        }, 1000);
+    }
+
+    function renderQ() {
+        const q = questions[currentIdx];
+        document.getElementById('qText').innerHTML = `<span style="color:var(--gold)">SOAL KDKMP ${currentIdx+1} / 20</span><br><br>${q.q}`;
+        let h = "";
+        q.o.forEach((opt, i) => {
+            const active = userAns[currentIdx] === opt ? "active" : "";
+            h += `<div class="opt-card ${active}" onclick="select('${opt}')"><b>${String.fromCharCode(65+i)}.</b> &nbsp; ${opt}</div>`;
+        });
+        document.getElementById('qOpts').innerHTML = h;
+        document.getElementById('btnNext').innerText = currentIdx === 19 ? "SELESAI" : "LANJUT";
+        updateNav();
+    }
+
+    function select(val) { 
+        userAns[currentIdx] = val; 
+        renderQ(); 
+        
+        // AUTO-NEXT (0.5 Detik)
+        if(currentIdx < 19) {
+            setTimeout(() => {
+                navigate(1);
+            }, 500); 
+        }
+    }
+
+    function navigate(n) { if(n===1 && currentIdx===19) return finalize(); currentIdx += n; if(currentIdx<0) currentIdx=0; renderQ(); }
+
+    function updateNav() {
+        let h = ""; questions.forEach((_, i) => {
+            let cls = i === currentIdx ? "nav-btn current" : "nav-btn";
+            if(userAns[i]) cls += " filled";
+            h += `<div class="${cls}" onclick="currentIdx=${i};renderQ()">${i+1}</div>`;
+        });
+        document.getElementById('navGrid').innerHTML = h;
+    }
+
+    function finalize() { if(confirm("Kirim jawaban sekarang?")) autoFinish(); }
+
+    function autoFinish() {
+        document.getElementById('screen-test').style.display = 'none';
+        document.getElementById('screen-result').style.display = 'block';
+        let score = 0, rHtml = "";
+        questions.forEach((q, i) => {
+            const u = userAns[i] || "Kosong";
+            const isC = u === q.c;
+            if(isC) score += 5; // Bobot Benar = 5
+            rHtml += `<div class="discussion"><b>NOMOR ${i+1}</b><br>${q.q}<hr>Jawaban Anda: ${u} ${isC?'✅':'❌'}<br>Kunci: ${q.c}<br><br><i><b>Analisis:</b> ${q.h}</i></div>`;
+        });
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('pDetails').innerText = `Nama: ${document.getElementById('pName').value} | Skor Akhir: ${score}/100`;
+        document.getElementById('reviewBox').innerHTML = rHtml;
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>

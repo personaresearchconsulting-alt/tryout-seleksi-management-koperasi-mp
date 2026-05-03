@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDKMP SUPER HOTS - Persona Research & Consulting</title>
+    <style>
+        :root { --primary: #002366; --gold: #c5a059; --bg: #f5f7fa; --text: #2d3436; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--bg); color: var(--text); -webkit-user-select: none; user-select: none; }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .login-screen { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .test-container { display: none; max-width: 1200px; margin: 20px auto; padding: 20px; display: flex; gap: 25px; }
+        .question-area { flex: 3; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 550px; }
+        .sidebar { flex: 1; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
+        .q-text { font-size: 17px; font-weight: 600; margin-bottom: 25px; line-height: 1.8; text-align: justify; color: #1e272e; }
+        .opt-card { padding: 15px; border: 2px solid #f1f2f6; border-radius: 10px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; display: flex; align-items: center; font-size: 15px; }
+        .opt-card:hover { border-color: var(--primary); background: #f8faff; }
+        .opt-card.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 20px; }
+        .nav-btn { padding: 10px; border: 1px solid #dfe4ea; text-align: center; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .nav-btn.filled { background: var(--primary); color: white; }
+        .nav-btn.current { border: 2px solid var(--gold); }
+        #timer { font-size: 32px; font-weight: bold; color: #d63031; text-align: center; margin-bottom: 20px; }
+        .result-screen { display: none; max-width: 950px; margin: 40px auto; background: white; padding: 50px; border-radius: 20px; }
+        .discussion { background: #fdfaff; border-left: 5px solid var(--primary); padding: 20px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; line-height: 1.6; }
+        .btn { padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn-primary { background: var(--primary); color: white; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="screen-login">
+    <div class="login-screen">
+        <div style="background:var(--primary); color:var(--gold); padding:15px; border-radius:10px; margin-bottom:20px; font-weight:bold; font-size:24px;">PRC</div>
+        <h3 style="margin-bottom:5px;">CAT KDKMP SUPER HOTS</h3>
+        <p style="font-size:13px; color:#636e72; margin-bottom:25px;">Materi: Manajemen & Kelembagaan Koperasi<br>20 Soal | Bobot Benar: 5 | Bobot Salah: 0</p>
+        <input type="text" id="pName" placeholder="Nama Lengkap Peserta" style="width:100%; padding:15px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
+        <button class="btn btn-primary" style="width:100%" onclick="initTest()">Mulai Assessment</button>
+        <p style="font-size:10px; margin-top:30px; color:#b2bec3;">Persona Research & Consulting | WA: 0877 4251 5786</p>
+    </div>
+</div>
+
+<div id="screen-test" style="display:none;">
+    <div class="header">
+        <h2 style="margin:0">TES MANAJEMEN KOPERASI (KDKMP)</h2>
+    </div>
+    <div class="test-container">
+        <div class="question-area">
+            <div id="qText" class="q-text"></div>
+            <div id="qOpts"></div>
+            <div style="margin-top:40px; display:flex; justify-content: space-between;">
+                <button class="btn" style="background:#b2bec3" onclick="navigate(-1)">Prev</button>
+                <button class="btn btn-primary" id="btnNext" onclick="navigate(1)">Next</button>
+            </div>
+        </div>
+        <div class="sidebar">
+            <div id="timer">45:00</div>
+            <div class="nav-grid" id="navGrid"></div>
+        </div>
+    </div>
+</div>
+
+<div id="screen-result" class="result-screen">
+    <h1 style="text-align:center; color:var(--primary)">HASIL EVALUASI KDKMP</h1>
+    <div id="finalScore" style="font-size:100px; text-align:center; font-weight:bold; color:var(--gold); margin:10px 0;">0</div>
+    <div id="pDetails" style="text-align:center; margin-bottom:40px; font-size:18px;"></div>
+    <hr>
+    <div id="reviewBox"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="location.reload()">Selesai & Keluar</button>
+</div>
+
+<script>
+    const EXPIRE_DATE = "2026-07-01";
+    if (new Date() > new Date(EXPIRE_DATE)) document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h1>Akses Terkunci.</h1><p>Masa berlaku link simulasi telah berakhir (1 Juli 2026).</p></div>";
+
+    let currentIdx = 0, userAns = {}, timer = 2700; // 45 Menit
+
+    const db = [
+        { q: "Koperasi 'Maju Bersama' memiliki tingkat partisipasi anggota dalam Rapat Anggota Tahunan (RAT) yang terus menurun di bawah 30% dalam tiga tahun terakhir. Dampak manajerial paling fatal dari fenomena ini terhadap tata kelola koperasi adalah...", o: ["Legitimasi keputusan strategis pengurus menjadi lemah secara hukum dan organisasi", "Biaya konsumsi RAT menjadi lebih hemat bagi kas koperasi", "Pengurus memiliki kebebasan penuh tanpa perlu diawasi oleh anggota", "Meningkatnya jumlah piutang tak tertagih secara otomatis", "Pemerintah akan langsung membubarkan koperasi tersebut tanpa peringatan"], c: "Legitimasi keputusan strategis pengurus menjadi lemah secara hukum dan organisasi", h: "RAT adalah pemegang kekuasaan tertinggi. Jika kuorum tidak tercapai atau partisipasi rendah, keputusan yang diambil tidak mewakili aspirasi anggota (pemilik), merusak demokrasi koperasi." },
+        { q: "Sebuah Koperasi Produksi mengalami konflik kepentingan karena Ketua Pengurus merangkap sebagai supplier utama bahan baku dengan harga di atas pasar. Tindakan evaluatif apa yang harus diambil oleh Pengawas berdasarkan prinsip transparansi?", o: ["Meminta Rapat Anggota mencopot pengurus dan membatalkan kontrak supplier tersebut", "Menaikkan harga jual produk koperasi agar tetap mendapatkan keuntungan", "Mendiamkan hal tersebut selama koperasi masih menghasilkan sisa hasil usaha", "Menyarankan pengurus untuk membagi keuntungan pribadi tersebut kepada pengawas", "Meminta pemerintah untuk mengambil alih pengelolaan koperasi secara langsung"], c: "Meminta Rapat Anggota mencopot pengurus dan membatalkan kontrak supplier tersebut", h: "Self-dealing atau benturan kepentingan melanggar prinsip integritas dan merugikan ekonomi anggota. Pengawas wajib melaporkan ini ke forum anggota." },
+        { q: "Koperasi Simpan Pinjam (KSP) menghadapi krisis likuiditas karena penarikan simpanan besar-besaran secara mendadak (bank run). Langkah darurat dalam pengelolaan keuangan yang paling tepat adalah...", o: ["Melakukan negosiasi penjadwalan ulang penarikan dan mencari pinjaman antar-koperasi (liquidity support)", "Menutup kantor koperasi secara permanen untuk menghindari amukan anggota", "Menjual aset gedung kantor di bawah harga pasar hari itu juga", "Menggunakan dana cadangan untuk bonus pengurus agar tetap semangat bekerja", "Menaikkan bunga pinjaman setinggi mungkin untuk menakuti anggota yang ingin pinjam"], c: "Melakukan negosiasi penjadwalan ulang penarikan dan mencari pinjaman antar-koperasi (liquidity support)", h: "Manajemen likuiditas membutuhkan ketenangan dan kerja sama jaringan (koperasi sekunder/mitra) untuk menjaga kepercayaan anggota." },
+        { q: "Dalam manajemen usaha, koperasi memutuskan untuk menerapkan sistem 'Just-In-Time' pada gudang retailnya. Risiko operasional utama yang harus dimitigasi dalam konteks kelembagaan koperasi yang berlokasi di daerah terpencil adalah...", o: ["Keterlambatan rantai pasokan akibat infrastruktur logistik yang belum stabil", "Anggota akan merasa kecewa karena rak toko terlihat sering kosong", "Harga barang akan menjadi lebih mahal karena tidak ada stok lama", "Pajak perusahaan akan meningkat karena perputaran barang yang cepat", "Pengurus akan kesulitan menghitung SHU di akhir tahun"], c: "Keterlambatan rantai pasokan akibat infrastruktur logistik yang belum stabil", h: "JIT sangat bergantung pada presisi waktu kirim. Di daerah dengan kendala infrastruktur, JIT berisiko tinggi menyebabkan kekosongan stok (stockout)." },
+        { q: "Seorang manajer koperasi dipecat oleh pengurus karena menolak memanipulasi laporan keuangan untuk kepentingan pajak. Secara hukum kelembagaan, manajer tersebut dapat membela diri melalui...", o: ["Laporan kepada Pengawas dan forum Rapat Anggota terkait pelanggaran kode etik pengurus", "Melakukan aksi mogok kerja di depan kantor Dinas Koperasi", "Meminta seluruh anggota untuk berhenti menyetor simpanan wajib", "Mengambil alih kunci brankas koperasi sebagai jaminan pesangon", "Menghapus seluruh database transaksi koperasi sebelum meninggalkan kantor"], c: "Laporan kepada Pengawas dan forum Rapat Anggota terkait pelanggaran kode etik pengurus", h: "Manajer bertanggung jawab kepada pengurus, namun memiliki kewajiban moral/legal terhadap organisasi. Pengawas adalah jalur internal untuk melaporkan penyimpangan pengurus." },
+        { q: "Pemerintah memberikan hibah peralatan mesin pengolahan kepada koperasi. Bagaimana pencatatan hibah tersebut dalam struktur permodalan koperasi agar sesuai dengan prinsip akuntansi koperasi?", o: ["Dicatat sebagai Modal Hibah yang menambah Modal Sendiri dan tidak boleh dibagikan sebagai SHU", "Dicatat sebagai pendapatan operasional yang langsung dibagi kepada pengurus", "Dicatat sebagai hutang jangka panjang kepada pemerintah", "Dihitung sebagai simpanan pokok milik ketua pengurus yang baru", "Tidak perlu dicatat karena barang tersebut pemberian cuma-cuma"], c: "Dicatat sebagai Modal Hibah yang menambah Modal Sendiri dan tidak boleh dibagikan sebagai SHU", h: "Hibah adalah modal permanen organisasi yang memperkuat struktur neraca dan dilarang untuk dikonsumsi/dibagi." },
+        { q: "Analisis laporan keuangan menunjukkan rasio beban perkoperasian meningkat tajam sementara partisipasi transaksi anggota menurun. Kesimpulan manajerial dari kondisi ini adalah...", o: ["Terjadi inefisiensi biaya organisasi yang tidak sebanding dengan manfaat ekonomi bagi anggota", "Koperasi sedang berada dalam masa kejayaan karena banyak mengeluarkan biaya", "Anggota koperasi sudah terlalu kaya sehingga tidak perlu bertransaksi lagi", "Pajak yang dibayarkan koperasi pasti akan menurun drastis", "Koperasi harus segera mengganti warna logo agar anggota tertarik kembali"], c: "Terjadi inefisiensi biaya organisasi yang tidak sebanding dengan manfaat ekonomi bagi anggota", h: "Beban perkoperasian harusnya menghasilkan dampak balik berupa peningkatan layanan/transaksi. Jika beban naik tapi transaksi turun, berarti biaya tersebut sia-sia." },
+        { q: "Dalam tata kelola koperasi, sistem 'One Member One Vote' dimaksudkan untuk mencegah...", o: ["Dominasi pengambilan keputusan oleh pemilik modal besar (kapitalisasi kekuasaan)", "Anggota yang tidak membayar simpanan wajib untuk ikut memilih", "Terlalu banyaknya usulan yang masuk dalam rapat anggota", "Intervensi pemerintah dalam menentukan harga jual barang", "Penggunaan hak suara oleh anggota yang sudah keluar dari koperasi"], c: "Dominasi pengambilan keputusan oleh pemilik modal besar (kapitalisasi kekuasaan)", h: "Koperasi mengutamakan kesetaraan orang (human base), bukan besaran modal (capital base) dalam pengambilan suara." },
+        { q: "Koperasi Syariah mengalami sengketa terkait akad pembiayaan dengan anggotanya. Berdasarkan prinsip kelembagaan, jalur penyelesaian pertama yang harus ditempuh adalah...", o: ["Musyawarah mufakat melalui mediasi internal Pengawas dan Dewan Pengawas Syariah", "Langsung mendaftarkan gugatan ke Pengadilan Negeri", "Melakukan penyitaan paksa aset anggota tanpa surat peringatan", "Menjual piutang tersebut ke perusahaan penagih hutang (debt collector)", "Menghapuskan hutang tersebut agar koperasi dianggap baik hati"], c: "Musyawarah mufakat melalui mediasi internal Pengawas dan Dewan Pengawas Syariah", h: "Prinsip kekeluargaan dan kepatuhan syariah mengedepankan mediasi dan musyawarah sebelum jalur litigasi." },
+        { q: "Strategi pengelolaan usaha koperasi yang paling efektif untuk menghadapi persaingan dengan toko modern (minimarket berjejaring) adalah...", o: ["Membangun loyalitas anggota melalui sistem poin belanja yang dikonversi menjadi SHU", "Membakar toko pesaing agar tidak ada kompetisi lagi", "Menaikkan harga barang agar terlihat lebih mewah dan premium", "Meminta bantuan dana kepada bank dengan bunga yang sangat tinggi", "Mengganti seluruh karyawan dengan keluarga pengurus agar hemat biaya"], c: "Membangun loyalitas anggota melalui sistem poin belanja yang dikonversi menjadi SHU", h: "Kekuatan koperasi adalah pada basis anggota (captive market). Memberikan insentif balik (SHU) adalah keunggulan kompetitif yang tidak dimiliki minimarket biasa." },
+        { q: "Seorang anggota ingin mengundurkan diri dan menuntut simpanannya dikembalikan saat itu juga, padahal koperasi sedang krisis uang tunai. Tindakan manajer sesuai aturan adalah...", o: ["Menjelaskan prosedur pengembalian simpanan sesuai ketentuan AD/ART yang biasanya dilakukan setelah RAT", "Memberikan uang pribadi manajer agar anggota tersebut tidak berisik", "Menolak pengunduran diri secara kasar dan mengusir anggota tersebut", "Memberikan pinjaman dari bank atas nama anggota tersebut", "Menjanjikan bunga 100% jika anggota tersebut mau membatalkan niatnya"], c: "Menjelaskan prosedur pengembalian simpanan sesuai ketentuan AD/ART yang biasanya dilakukan setelah RAT", h: "Pengelolaan keluar-masuknya modal diatur dalam AD/ART untuk menjaga stabilitas keuangan organisasi." },
+        { q: "Digitalisasi koperasi (Koperasi Modern) seringkali gagal karena faktor sosiologis. Hambatan utama yang sering muncul pada koperasi dengan rata-rata usia anggota senior adalah...", o: ["Rendahnya literasi digital dan resistensi terhadap perubahan sistem manual ke aplikasi", "Harga smartphone yang dianggap terlalu murah oleh para anggota", "Ketiadaan listrik di seluruh kantor koperasi di Indonesia", "Ketakutan pengurus bahwa data digital akan membuat mereka terlalu rajin", "Keinginan anggota untuk selalu menggunakan uang koin dalam bertransaksi"], c: "Rendahnya literasi digital dan resistensi terhadap perubahan sistem manual ke aplikasi", h: "Aspek 'People' adalah tantangan terbesar dalam transformasi digital, terutama pada kelompok usia yang tidak terbiasa dengan teknologi (digital immigrant)." },
+        { q: "Dalam evaluasi kelembagaan, ditemukan bahwa Pengurus tidak pernah membuat program kerja tahunan. Dampak jangka panjang terhadap pelayanan anggota adalah...", o: ["Arah pengembangan pelayanan menjadi tidak terukur dan cenderung reaktif", "Pelayanan akan menjadi lebih spontan dan menyenangkan bagi anggota", "Biaya operasional koperasi akan menjadi nol karena tidak ada rencana", "Jumlah anggota akan meningkat secara drastis secara tiba-tiba", "Koperasi akan mendapatkan penghargaan dari kementerian karena fleksibilitasnya"], c: "Arah pengembangan pelayanan menjadi tidak terukur dan cenderung reaktif", h: "Tanpa rencana kerja (planning), manajemen kehilangan kompas untuk mencapai tujuan strategis." },
+        { q: "Seorang pengurus koperasi menggunakan kendaraan operasional untuk kepentingan bisnis pribadinya di luar jam kantor. Berdasarkan manajemen aset, hal ini dikategorikan sebagai...", o: ["Penyalahgunaan aset organisasi (Asset Misappropriation) yang merugikan koperasi", "Inovasi penggunaan aset agar kendaraan tidak cepat rusak karena didiamkan", "Bentuk kompensasi tambahan karena gaji pengurus dianggap kecil", "Hal yang wajar selama bensin dibayar menggunakan uang pribadi", "Strategi promosi koperasi secara tidak langsung di pasar"], c: "Penyalahgunaan aset organisasi (Asset Misappropriation) yang merugikan koperasi", h: "Aset organisasi hanya boleh digunakan untuk kepentingan entitas bisnis tersebut. Penggunaan pribadi adalah bentuk pelanggaran integritas." },
+        { q: "Koperasi nelayan ingin membeli kapal besar secara kolektif namun kekurangan modal. Solusi pengelolaan keuangan jangka panjang yang paling aman secara prinsip koperasi adalah...", o: ["Menerbitkan Sertifikat Modal Koperasi (SMK) bagi anggota yang bersedia menambah modal", "Melakukan pinjaman online dengan bunga harian kepada pihak ketiga", "Menjual seluruh cadangan pangan anggota untuk membeli mesin kapal", "Meminta sumbangan sukarela dari turis asing yang lewat di pantai", "Mengurangi jatah makan harian seluruh karyawan koperasi"], c: "Menerbitkan Sertifikat Modal Koperasi (SMK) bagi anggota yang bersedia menambah modal", h: "SMK adalah instrumen penguatan modal internal yang melibatkan partisipasi anggota tanpa kehilangan kendali otonomi." },
+        { q: "Apa indikator utama bahwa sebuah koperasi telah berhasil menjalankan fungsi utamanya sebagai gerakan ekonomi rakyat?", o: ["Peningkatan taraf hidup dan kemandirian ekonomi para anggotanya", "Besarnya gedung kantor yang dimiliki oleh pengurus koperasi", "Seringnya pengurus koperasi muncul di media massa nasional", "Jumlah uang tunai yang tersimpan di brankas kantor pusat", "Banyaknya jumlah piutang yang macet di kalangan pengurus"], c: "Peningkatan taraf hidup dan kemandirian ekonomi para anggotanya", h: "Keberhasilan koperasi diukur dari dampak sosial-ekonomi (member welfare), bukan sekadar akumulasi aset fisik." },
+        { q: "Koperasi Konsumsi menemukan banyak barang kadaluwarsa di rak karena manajer tidak melakukan kontrol stok. Langkah perbaikan manajemen operasional yang harus diambil adalah...", o: ["Menerapkan sistem First-In First-Out (FIFO) dan audit stok berkala (Stock Opname)", "Menghapus tanggal kadaluwarsa agar barang tetap bisa terjual", "Memberikan barang kadaluwarsa tersebut sebagai bonus SHU anggota", "Menutup unit toko dan beralih menjadi koperasi simpan pinjam saja", "Menyalahkan cuaca sebagai penyebab barang cepat rusak"], c: "Menerapkan sistem First-In First-Out (FIFO) dan audit stok berkala (Stock Opname)", h: "Pengelolaan stok yang profesional memerlukan rotasi barang yang benar dan pengecekan fisik rutin." },
+        { q: "Dalam rapat anggota, terjadi perdebatan sengit mengenai rencana pembukaan cabang baru. Ketua rapat harus mengambil keputusan berdasarkan...", o: ["Kesepakatan bersama (konsensus) atau suara terbanyak jika buntu", "Siapa yang paling keras suaranya dalam ruangan tersebut", "Pilihan yang paling menguntungkan bagi ketua pengurus secara pribadi", "Pendapat anggota yang memiliki simpanan paling besar saja", "Meminta semua anggota pulang dan memutuskan sendiri di rumah"], c: "Kesepakatan bersama (konsensus) atau suara terbanyak jika buntu", h: "Demokrasi koperasi mengedepankan musyawarah mufakat (konsensus) sebelum opsi voting." },
+        { q: "Audit eksternal menemukan bahwa koperasi tidak memiliki SOP (Standard Operating Procedure) tertulis. Risiko kelembagaan yang muncul adalah...", o: ["Ketidakkonsistenan layanan dan potensi manipulasi prosedur oleh oknum", "Koperasi akan dianggap terlalu kreatif oleh auditor", "Karyawan akan bekerja lebih cepat karena tidak ada aturan yang mengikat", "Pemerintah akan memberikan bantuan dana karena dianggap butuh bimbingan", "Tidak ada dampak apa pun karena yang penting usaha jalan terus"], c: "Ketidakkonsistenan layanan dan potensi manipulasi prosedur oleh oknum", h: "SOP adalah instrumen kontrol. Tanpa SOP, operasional menjadi subjektif dan rawan penyimpangan." },
+        { q: "Prinsip 'Kerja Sama Antar Koperasi' bertujuan untuk...", o: ["Memperkuat posisi tawar kolektif dan efisiensi skala ekonomi dalam pasar", "Saling meminjamkan pengurus agar tidak bosan di satu tempat", "Menggabungkan seluruh hutang agar tidak perlu dibayar", "Memastikan hanya satu koperasi saja yang boleh sukses di satu daerah", "Membuat keributan massal saat demo di kantor kementerian"], c: "Memperkuat posisi tawar kolektif dan efisiensi skala ekonomi dalam pasar", h: "Jaringan antar-koperasi (federasi/sekunder) menciptakan kekuatan ekonomi yang lebih besar menghadapi pasar global." }
+    ];
+
+    function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+    const questions = db.map(d => {
+        const opts = shuffle([...d.o]);
+        return { ...d, o: opts };
+    });
+
+    function initTest() {
+        if(!document.getElementById('pName').value) return alert("Silakan masukkan nama peserta!");
+        document.getElementById('screen-login').style.display = 'none';
+        document.getElementById('screen-test').style.display = 'block';
+        renderQ();
+        setInterval(() => {
+            timer--;
+            let m = Math.floor(timer/60), s = timer%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+            if(timer <= 0) autoFinish();
+        }, 1000);
+    }
+
+    function renderQ() {
+        const q = questions[currentIdx];
+        document.getElementById('qText').innerHTML = `<span style="color:var(--gold); font-size:14px;">KDKMP ANALISIS KASUS #${currentIdx+1}</span><br><br>${q.q}`;
+        let h = "";
+        q.o.forEach((opt, i) => {
+            const active = userAns[currentIdx] === opt ? "active" : "";
+            h += `<div class="opt-card ${active}" onclick="select('${opt}')"><b>${String.fromCharCode(65+i)}.</b> &nbsp; ${opt}</div>`;
+        });
+        document.getElementById('qOpts').innerHTML = h;
+        document.getElementById('btnNext').innerText = currentIdx === 19 ? "SELESAI" : "LANJUT";
+        updateNav();
+    }
+
+    function select(val) { 
+        userAns[currentIdx] = val; 
+        renderQ(); 
+        
+        if(currentIdx < 19) {
+            setTimeout(() => { navigate(1); }, 500); 
+        }
+    }
+
+    function navigate(n) { if(n===1 && currentIdx===19) return finalize(); currentIdx += n; if(currentIdx<0) currentIdx=0; renderQ(); }
+
+    function updateNav() {
+        let h = ""; questions.forEach((_, i) => {
+            let cls = i === currentIdx ? "nav-btn current" : "nav-btn";
+            if(userAns[i]) cls += " filled";
+            h += `<div class="${cls}" onclick="currentIdx=${i};renderQ()">${i+1}</div>`;
+        });
+        document.getElementById('navGrid').innerHTML = h;
+    }
+
+    function finalize() { if(confirm("Kirim hasil ujian Anda sekarang?")) autoFinish(); }
+
+    function autoFinish() {
+        document.getElementById('screen-test').style.display = 'none';
+        document.getElementById('screen-result').style.display = 'block';
+        let score = 0, rHtml = "";
+        questions.forEach((q, i) => {
+            const u = userAns[i] || "Tidak Dijawab";
+            const isC = u === q.c;
+            if(isC) score += 5; // Bobot Sesuai Gambar
+            rHtml += `<div class="discussion"><b>ANALISIS SOAL ${i+1}</b><br>${q.q}<hr>Jawaban: ${u} ${isC?'✅':'❌'}<br>Kunci: ${q.c}<br><br><i><b>Ulasan Strategis:</b> ${q.h}</i></div>`;
+        });
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('pDetails').innerText = `Nama: ${document.getElementById('pName').value} | Skor Akhir: ${score}/100`;
+        document.getElementById('reviewBox').innerHTML = rHtml;
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>
