@@ -1,120 +1,51 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal CAT — Persona Research & Consulting</title>
+    <title>Portal CAT</title>
     <style>
-        :root { 
-            --primary: #1a1a2e; 
-            --accent: #c5a059;  
-            --bg: #f8f7f2; 
-        }
-
-        /* Anti-Copy diaktifkan hanya pada teks umum, bukan kotak input */
-        body { 
-            background: var(--bg); 
-            font-family: sans-serif; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 100vh;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .container { 
-            max-width: 500px; 
-            margin: auto; 
-            background: #fff; 
-            padding: 30px; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            text-align: center;
-            border-top: 8px solid var(--accent);
-        }
-
-        /* Memastikan kotak input BISA dipilih dan diketik */
-        input[type="password"] {
-            width: 100%;
-            padding: 15px;
-            margin: 20px 0;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            -webkit-user-select: text !important;
-            user-select: text !important;
-            cursor: text;
-        }
-
-        .btn-lock {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: var(--accent);
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .menu-grid { display: grid; gap: 10px; margin-top: 20px; }
-        .menu-item {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--primary);
-            font-weight: bold;
-            background: #fff;
-        }
-
-        #main-menu { display: none; }
+        body { background: #1a1a2e; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 90%; max-width: 400px; border-top: 8px solid #c5a059; }
+        input { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1a1a2e; color: #c5a059; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .menu { display: none; text-align: left; }
+        .menu a { display: block; padding: 12px; margin: 8px 0; border: 1px solid #eee; text-decoration: none; color: #1a1a2e; font-weight: bold; border-radius: 5px; background: #f9f9f9; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-<div class="container">
-    <div id="login-screen">
-        <h2>ACCESS CONTROL</h2>
-        <p style="color: #c5a059; font-weight: bold;">PERSONA RESEARCH & CONSULTING</p>
-        <input type="password" id="passInput" placeholder="Klik di sini & ketik password">
-        <button class="btn-lock" onclick="checkAccess()">BUKA MENU</button>
+<div class="box">
+    <div id="login">
+        <h2 style="margin:0">LOGIN AKSES</h2>
+        <p style="font-size:12px; color:#c5a059">Persona Research & Consulting</p>
+        <input type="password" id="psw" placeholder="Ketik password di sini">
+        <button onclick="masuk()">BUKA MENU</button>
     </div>
 
-    <div id="main-menu">
-        <h3>DAFTAR SIMULASI CAT</h3>
-        <div class="menu-grid">
-            <a href="kecerdasan_kognitif_bumn.html" class="menu-item">Kecerdasan Kognitif BUMN</a>
-            <a href="potensi_kognitif_1.html" class="menu-item">Tes Potensi Kognitif 1</a>
-            <a href="potensi_kognitif_2.html" class="menu-item">Tes Potensi Kognitif 2</a>
-            <a href="potensi_kognitif_100soal.html" class="menu-item">Potensi Kognitif 100 Soal</a>
-            <a href="kdkmp_1.html" class="menu-item">KDKMP Modul 1</a>
-            <a href="kdkmp_2.html" class="menu-item">KDKMP Modul 2</a>
-            <a href="kdmp_50b.html" class="menu-item">Assessment KDKMP 50</a>
-        </div>
+    <div id="menu" class="menu">
+        <h3 style="text-align:center">MENU SIMULASI</h3>
+        <a href="kecerdasan_kognitif_bumn.html">Kecerdasan Kognitif BUMN</a>
+        <a href="potensi_kognitif_1.html">Tes Potensi Kognitif 1</a>
+        <a href="potensi_kognitif_2.html">Tes Potensi Kognitif 2</a>
+        <a href="potensi_kognitif_100soal.html">Potensi Kognitif 100 Soal</a>
+        <a href="kdkmp_1.html">KDKMP Modul 1</a>
+        <a href="kdkmp_2.html">KDKMP Modul 2</a>
+        <a href="kdmp_50b.html">Assessment KDKMP 50</a>
     </div>
 </div>
 
 <script>
-    const ACCESS_KEY = "persona05";
-
-    function checkAccess() {
-        const input = document.getElementById('passInput').value;
-        if (input === ACCESS_KEY) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'block';
+    function masuk() {
+        var p = document.getElementById("psw").value;
+        if (p === "persona05") {
+            document.getElementById("login").style.display = "none";
+            document.getElementById("menu").style.display = "block";
         } else {
             alert("Password Salah!");
         }
     }
-
-    // Hanya memblokir tombol F12 dan Ctrl+U agar tidak bisa intip kode
-    document.onkeydown = function(e) {
-        if (e.keyCode == 123 || (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
 </script>
+
 </body>
 </html>
